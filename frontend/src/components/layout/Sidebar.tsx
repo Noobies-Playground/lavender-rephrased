@@ -172,11 +172,11 @@ export const Sidebar: React.FC = () => {
                 padding: collapsed ? '10px 0' : '10px 14px',
                 justifyContent: collapsed ? 'center' : 'flex-start',
                 borderRadius: 'var(--radius-md)',
-                color: isActive ? '#ffffff' : 'var(--text-secondary)',
-                background: isActive
-                  ? 'linear-gradient(90deg, rgba(124, 58, 237, 0.28) 0%, rgba(124, 58, 237, 0.1) 100%)'
-                  : 'transparent',
-                borderLeft: isActive ? '3px solid var(--purple)' : '3px solid transparent',
+                color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
+                background: isActive ? 'var(--accent-dim)' : 'transparent',
+                border: isActive ? '1px solid var(--border-accent)' : '1px solid transparent',
+                borderLeft: isActive ? '3px solid var(--accent)' : '3px solid transparent',
+                boxShadow: isActive ? '0 0 12px rgba(6, 182, 212, 0.15)' : 'none',
                 fontWeight: isActive ? 600 : 500,
                 fontSize: '0.88rem',
                 textDecoration: 'none',

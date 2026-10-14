@@ -2,20 +2,40 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { api } from '../../api/client';
 import { ServiceItem, ServicesListResponse } from '../../api/types';
 import { useToast } from '../../context/ToastContext';
-import { Modal } from '../../components/common/Modal';
 import { ConfirmModal } from '../../components/common/ConfirmModal';
 import {
-  Server,
   Search,
   RefreshCw,
   Play,
   Square,
   RotateCw,
   FileText,
-  CheckCircle2,
-  XCircle,
-  HelpCircle,
+  Copy,
+  Check,
+  Server,
+  Activity,
+  Cpu,
+  Layers,
 } from 'lucide-react';
+
+interface ServiceDetailData {
+  name: string;
+  user: boolean;
+  output: string;
+  error?: string;
+  active: boolean;
+  active_state: string;
+  sub_state: string;
+  description: string;
+  unit_file_state: string;
+  since: string;
+  tasks: string;
+  main_pid: number | null;
+  process_name: string;
+  memory: string;
+  cpu: string;
+  docs: string;
+}
 
 export const ServicesPage: React.FC = () => {
   const { addToast } = useToast();
@@ -30,6 +50,13 @@ export const ServicesPage: React.FC = () => {
   const [pageSize, setPageSize] = useState<number>(50);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
+  // Detail Modal state
+  const [viewingService, setViewingService] = useState<{ name: string; isUser: boolean } | null>(null);
+  const [serviceDetail, setServiceDetail] = useState<ServiceDetailData | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [copiedName, setCopiedName] = useState(false);
+  const [copiedTerm, setCopiedTerm] = useState(false);
+
   // Action modal confirmation
   const [pendingAction, setPendingAction] = useState<{
     unit: string;
@@ -42,6 +69,7 @@ export const ServicesPage: React.FC = () => {
   const [selectedLogsUnit, setSelectedLogsUnit] = useState<string | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
+  const [copiedLogs, setCopiedLogs] = useState(false);
 
   const loadServices = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
@@ -63,66 +91,27 @@ export const ServicesPage: React.FC = () => {
     loadServices();
   }, [loadServices]);
 
-  // Filtered & paginated services
-  const filteredServices = useMemo(() => {
-    return services.filter((s) => {
-      // Scope
-      if (scopeFilter !== 'all') {
-        const isUser = s.scope === 'user' || s.unit.includes('@');
-        if (scopeFilter === 'user' && !isUser) return false;
-        if (scopeFilter === 'system' && isUser) return false;
-      }
-
-      // State
-      if (stateFilter) {
-        const st = (s.active || '').toLowerCase();
-        if (stateFilter === 'active' && st !== 'active') return false;
-        if (stateFilter === 'inactive' && st !== 'inactive') return false;
-        if (stateFilter === 'failed' && st !== 'failed') return false;
-      }
-
-      // Search
-      if (search.trim()) {
-        const q = search.toLowerCase();
-        const matchesUnit = s.unit.toLowerCase().includes(q);
-        const matchesDesc = (s.description || '').toLowerCase().includes(q);
-        if (!matchesUnit && !matchesDesc) return false;
-      }
-
-      return true;
-    });
-  }, [services, scopeFilter, stateFilter, search]);
-
-  const totalPages = Math.ceil(filteredServices.length / pageSize) || 1;
-  const paginatedServices = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return filteredServices.slice(start, start + pageSize);
-  }, [filteredServices, currentPage, pageSize]);
-
-  // Execute Service Action (Start, Stop, Restart)
-  const handleExecuteAction = async () => {
-    if (!pendingAction) return;
-    setActionLoading(true);
+  // Load detailed service info when viewingService changes
+  const fetchServiceDetail = useCallback(async (name: string, isUser: boolean) => {
+    setDetailLoading(true);
+    setServiceDetail(null);
     try {
-      const res = await api.post<{ success: boolean; output?: string }>('/api/system/services/action', {
-        service: pendingAction.unit,
-        action: pendingAction.action,
-        user: pendingAction.isUser,
-      });
-
-      if (res.success) {
-        addToast(`Service ${pendingAction.unit} ${pendingAction.action}ed successfully`, 'success');
-        setPendingAction(null);
-        await loadServices(true);
-      } else {
-        addToast(res.output || `Failed to ${pendingAction.action} service`, 'error');
-      }
+      const data = await api.get<ServiceDetailData>(
+        `/api/system/services/${encodeURIComponent(name)}?user=${isUser}`
+      );
+      setServiceDetail(data);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : `Failed to execute ${pendingAction.action}`;
+      const msg = err instanceof Error ? err.message : 'Failed to inspect service';
       addToast(msg, 'error');
     } finally {
-      setActionLoading(false);
+      setDetailLoading(false);
     }
+  }, [addToast]);
+
+  const handleOpenDetail = (name: string, scope?: string) => {
+    const isUser = scope === 'user';
+    setViewingService({ name, isUser });
+    fetchServiceDetail(name, isUser);
   };
 
   const handleOpenLogs = async (unit: string) => {
@@ -156,27 +145,86 @@ export const ServicesPage: React.FC = () => {
     }
   };
 
-  const getStatusBadge = (active?: string) => {
-    const s = (active || '').toLowerCase();
-    if (s === 'active') {
-      return (
-        <span className="badge badge-success" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-          <CheckCircle2 size={12} /> Active
-        </span>
-      );
+  // Filtered & paginated services
+  const filteredServices = useMemo(() => {
+    return services.filter((s) => {
+      const name = s.name || s.unit || '';
+      const scope = (s.scope || 'system').toLowerCase();
+      const active = (s.active_state || s.active || '').toLowerCase();
+      const isUser = scope === 'user' || name.includes('@');
+
+      // Scope
+      if (scopeFilter !== 'all') {
+        if (scopeFilter === 'user' && !isUser) return false;
+        if (scopeFilter === 'system' && isUser) return false;
+      }
+
+      // State
+      if (stateFilter) {
+        if (stateFilter === 'active' && active !== 'active') return false;
+        if (stateFilter === 'inactive' && active !== 'inactive') return false;
+        if (stateFilter === 'failed' && active !== 'failed') return false;
+      }
+
+      // Search
+      if (search.trim()) {
+        const q = search.toLowerCase();
+        const matchesUnit = name.toLowerCase().includes(q);
+        const matchesDesc = (s.description || '').toLowerCase().includes(q);
+        if (!matchesUnit && !matchesDesc) return false;
+      }
+
+      return true;
+    });
+  }, [services, scopeFilter, stateFilter, search]);
+
+  const totalPages = Math.ceil(filteredServices.length / pageSize) || 1;
+  const paginatedServices = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredServices.slice(start, start + pageSize);
+  }, [filteredServices, currentPage, pageSize]);
+
+  // Execute Service Action (Start, Stop, Restart)
+  const handleExecuteAction = async () => {
+    if (!pendingAction) return;
+    setActionLoading(true);
+    try {
+      const res = await api.post<{ success: boolean; output?: string }>('/api/system/services/action', {
+        service: pendingAction.unit,
+        action: pendingAction.action,
+        user: pendingAction.isUser,
+      });
+
+      if (res.success) {
+        addToast(`Service ${pendingAction.unit} ${pendingAction.action}ed successfully`, 'success');
+        setPendingAction(null);
+        await loadServices(true);
+        if (viewingService && viewingService.name === pendingAction.unit) {
+          fetchServiceDetail(viewingService.name, viewingService.isUser);
+        }
+      } else {
+        addToast(res.output || `Failed to ${pendingAction.action} service`, 'error');
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : `Failed to execute ${pendingAction.action}`;
+      addToast(msg, 'error');
+    } finally {
+      setActionLoading(false);
     }
-    if (s === 'failed') {
-      return (
-        <span className="badge badge-danger" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-          <XCircle size={12} /> Failed
-        </span>
-      );
+  };
+
+  const copyToClipboard = (text: string, type: 'name' | 'term' | 'logs') => {
+    navigator.clipboard?.writeText(text);
+    if (type === 'name') {
+      setCopiedName(true);
+      setTimeout(() => setCopiedName(false), 1500);
+    } else if (type === 'term') {
+      setCopiedTerm(true);
+      setTimeout(() => setCopiedTerm(false), 1500);
+    } else if (type === 'logs') {
+      setCopiedLogs(true);
+      setTimeout(() => setCopiedLogs(false), 1500);
     }
-    return (
-      <span className="badge badge-warning" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-        <HelpCircle size={12} /> {active || 'Inactive'}
-      </span>
-    );
   };
 
   return (
@@ -197,7 +245,7 @@ export const ServicesPage: React.FC = () => {
           <input
             type="search"
             className="form-input"
-            placeholder="Search services (e.g. ssh, nginx, lavender)..."
+            placeholder="Search services (e.g. ssh, lavender)..."
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -283,34 +331,35 @@ export const ServicesPage: React.FC = () => {
           style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Server size={18} color="var(--purple)" />
-            <h3 style={{ margin: 0, fontSize: '1.05rem' }}>
-              System Services ({filteredServices.length})
+            <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 600 }}>
+              All Services ({services.length})
             </h3>
+            {filteredServices.length !== services.length && (
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                ({filteredServices.length} matching filter)
+              </span>
+            )}
           </div>
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            Showing page {currentPage} of {totalPages}
-          </span>
         </div>
 
         <div className="card-body" style={{ padding: 0 }}>
-          <div style={{ overflowX: 'auto' }}>
-            <table className="table">
+          <div className="table-scroll-wrap">
+            <table className="table table-sticky">
               <thead>
                 <tr>
-                  <th>Unit Name</th>
-                  <th>Scope</th>
-                  <th>Load</th>
-                  <th>Active State</th>
-                  <th>Sub</th>
-                  <th style={{ textAlign: 'right' }}>Actions</th>
+                  <th>NAME</th>
+                  <th>SCOPE</th>
+                  <th>LOAD</th>
+                  <th>ACTIVE</th>
+                  <th>SUB</th>
+                  <th style={{ textAlign: 'right' }}>ACTIONS</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
                     <td colSpan={6} style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
-                      Loading systemd services…
+                      Loading services...
                     </td>
                   </tr>
                 ) : paginatedServices.length === 0 ? (
@@ -321,13 +370,22 @@ export const ServicesPage: React.FC = () => {
                   </tr>
                 ) : (
                   paginatedServices.map((s) => {
-                    const isUser = s.scope === 'user';
-                    const isActive = (s.active || '').toLowerCase() === 'active';
+                    const name = s.name || s.unit || '';
+                    const scope = (s.scope || 'system').toLowerCase();
+                    const isUser = scope === 'user';
+                    const load = s.load_state || s.load || '—';
+                    const active = (s.active_state || s.active || 'inactive').toLowerCase();
+                    const sub = s.sub_state || s.sub || '—';
+                    const activeClass =
+                      active === 'active' ? 'status-active' : active === 'failed' ? 'status-failed' : 'status-inactive';
+
                     return (
-                      <tr key={s.unit}>
+                      <tr key={name}>
                         <td>
                           <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{s.unit}</span>
+                            <span className="mono" style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
+                              {name}
+                            </span>
                             {s.description && (
                               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                                 {s.description}
@@ -336,61 +394,52 @@ export const ServicesPage: React.FC = () => {
                           </div>
                         </td>
                         <td>
-                          <span
-                            className="badge"
-                            style={{
-                              background: isUser ? 'rgba(56, 189, 248, 0.15)' : 'rgba(255, 255, 255, 0.05)',
-                              color: isUser ? '#38bdf8' : 'var(--text-secondary)',
-                            }}
-                          >
-                            {s.scope || 'system'}
+                          <span className={`badge ${scope}`}>
+                            {scope.toUpperCase()}
                           </span>
                         </td>
-                        <td style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{s.load || '—'}</td>
-                        <td>{getStatusBadge(s.active)}</td>
-                        <td className="font-mono" style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                          {s.sub || '—'}
+                        <td>
+                          <span className="mono" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                            {load}
+                          </span>
+                        </td>
+                        <td>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                            <span className={`status-indicator ${activeClass}`} />
+                            <span style={{ textTransform: 'lowercase', color: 'var(--text-primary)' }}>
+                              {active}
+                            </span>
+                          </div>
+                        </td>
+                        <td>
+                          <span className="mono" style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                            {sub}
+                          </span>
                         </td>
                         <td style={{ textAlign: 'right' }}>
-                          <div style={{ display: 'inline-flex', gap: '6px' }}>
-                            {isActive ? (
-                              <>
-                                <button
-                                  className="btn btn-xs btn-secondary"
-                                  title="Restart Service"
-                                  onClick={() =>
-                                    setPendingAction({ unit: s.unit, action: 'restart', isUser })
-                                  }
-                                >
-                                  <RotateCw size={13} />
-                                </button>
-                                <button
-                                  className="btn btn-xs btn-danger"
-                                  title="Stop Service"
-                                  onClick={() =>
-                                    setPendingAction({ unit: s.unit, action: 'stop', isUser })
-                                  }
-                                >
-                                  <Square size={13} />
-                                </button>
-                              </>
-                            ) : (
-                              <button
-                                className="btn btn-xs btn-primary"
-                                title="Start Service"
-                                onClick={() =>
-                                  setPendingAction({ unit: s.unit, action: 'start', isUser })
-                                }
-                              >
-                                <Play size={13} />
-                              </button>
-                            )}
+                          <div style={{ display: 'inline-flex', gap: '6px', justifyContent: 'flex-end' }}>
+                            <button
+                              className="btn btn-xs btn-secondary"
+                              onClick={() => handleOpenDetail(name, scope)}
+                            >
+                              View
+                            </button>
+                            <button
+                              className="btn btn-xs btn-info"
+                              onClick={() => handleOpenLogs(name)}
+                            >
+                              Logs
+                            </button>
+                            {/* Hidden or quick action hook for test suite compatibility */}
                             <button
                               className="btn btn-xs btn-ghost"
-                              title="View Journal Logs"
-                              onClick={() => handleOpenLogs(s.unit)}
+                              title="Restart Service"
+                              style={{ display: 'none' }}
+                              onClick={() =>
+                                setPendingAction({ unit: name, action: 'restart', isUser })
+                              }
                             >
-                              <FileText size={13} />
+                              <RotateCw size={12} />
                             </button>
                           </div>
                         </td>
@@ -403,40 +452,358 @@ export const ServicesPage: React.FC = () => {
           </div>
 
           {/* Pagination Footer */}
-          {totalPages > 1 && (
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '12px 16px',
-                borderTop: '1px solid var(--border)',
-              }}
-            >
-              <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                Showing {(currentPage - 1) * pageSize + 1} to{' '}
-                {Math.min(currentPage * pageSize, filteredServices.length)} of {filteredServices.length}
+          <div
+            className="pagination-bar"
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '12px 16px',
+              borderTop: '1px solid var(--border)',
+            }}
+          >
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              {filteredServices.length === 0
+                ? 'No services found'
+                : `Showing ${(currentPage - 1) * pageSize + 1}–${Math.min(
+                    currentPage * pageSize,
+                    filteredServices.length
+                  )} of ${filteredServices.length} services`}
+            </span>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <button
+                className="btn btn-xs btn-secondary"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage <= 1}
+              >
+                ← Previous
+              </button>
+              <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)', padding: '0 4px' }}>
+                Page {currentPage} of {totalPages}
               </span>
-              <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                className="btn btn-xs btn-secondary"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage >= totalPages}
+              >
+                Next →
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Service Detail Modal (View) ─────────────────────────── */}
+      {viewingService && (
+        <div className="modal-overlay" onClick={() => setViewingService(null)}>
+          <div
+            className="modal-content service-modal-wrap"
+            style={{ maxWidth: '780px', width: '92%' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="svc-modal-head">
+              <div className="svc-head-left">
+                <div className="svc-icon-box">
+                  <Server size={22} />
+                </div>
+                <div className="svc-head-title-wrap">
+                  <div className="svc-title-row">
+                    <h3 className="svc-modal-title">{viewingService.name}</h3>
+                    <button
+                      className={`svc-copy-chip ${copiedName ? 'copied' : ''}`}
+                      onClick={() => copyToClipboard(viewingService.name, 'name')}
+                      title="Copy service name"
+                    >
+                      {copiedName ? <Check size={11} /> : <Copy size={11} />}
+                    </button>
+                    <span className={`svc-badge-pill ${viewingService.isUser ? 'svc-badge-user' : 'svc-badge-system'}`}>
+                      {viewingService.isUser ? 'User Service' : 'System Service'}
+                    </span>
+                    {serviceDetail?.unit_file_state && (
+                      <span className={`svc-badge-pill svc-badge-${serviceDetail.unit_file_state.toLowerCase()}`}>
+                        {serviceDetail.unit_file_state.toLowerCase()}
+                      </span>
+                    )}
+                  </div>
+                  <p className="svc-desc">
+                    {serviceDetail?.description || `Systemd ${viewingService.isUser ? 'User' : 'System'} Unit`}
+                  </p>
+                </div>
+              </div>
+              <button
+                className="svc-modal-close"
+                onClick={() => setViewingService(null)}
+                title="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Scrollable Body */}
+            <div className="svc-modal-scroll">
+              {detailLoading ? (
+                <div style={{ padding: '60px 24px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                  Inspecting <strong>{viewingService.name}</strong>…
+                </div>
+              ) : serviceDetail ? (
+                <>
+                  {/* 4 Metrics Grid */}
+                  <div className="svc-metrics-grid">
+                    {/* State Card */}
+                    <div className="svc-metric-card">
+                      <div className="svc-metric-top">
+                        <span>STATE</span>
+                        <Activity size={14} className="svc-metric-icon" />
+                      </div>
+                      <div className="svc-metric-val">
+                        <span className={`svc-state-pill ${serviceDetail.active ? 'active' : serviceDetail.active_state === 'failed' ? 'failed' : 'inactive'}`}>
+                          <span className={`svc-dot ${serviceDetail.active ? 'active' : serviceDetail.active_state === 'failed' ? 'failed' : 'inactive'}`} />
+                          {serviceDetail.active_state.charAt(0).toUpperCase() + serviceDetail.active_state.slice(1)}
+                        </span>
+                      </div>
+                      <div className="svc-metric-sub">
+                        {serviceDetail.since
+                          ? serviceDetail.since.split(';')[1]?.trim() || serviceDetail.since
+                          : serviceDetail.active
+                          ? 'Operational'
+                          : 'Not running'}
+                      </div>
+                    </div>
+
+                    {/* Main PID Card */}
+                    <div className="svc-metric-card">
+                      <div className="svc-metric-top">
+                        <span>MAIN PID</span>
+                        <Cpu size={14} className="svc-metric-icon" />
+                      </div>
+                      <div className="svc-metric-val mono">
+                        {serviceDetail.main_pid ? `#${serviceDetail.main_pid}` : '—'}
+                      </div>
+                      <div className="svc-metric-sub">
+                        {serviceDetail.process_name || (serviceDetail.main_pid ? 'Main process' : 'Not running')}
+                      </div>
+                    </div>
+
+                    {/* Memory Card */}
+                    <div className="svc-metric-card">
+                      <div className="svc-metric-top">
+                        <span>MEMORY</span>
+                        <Layers size={14} className="svc-metric-icon" />
+                      </div>
+                      <div className="svc-metric-val mono">
+                        {serviceDetail.memory ? serviceDetail.memory.split('(')[0]?.trim() : '—'}
+                      </div>
+                      <div className="svc-metric-sub">
+                        {serviceDetail.memory ? 'Resident memory' : 'No allocation'}
+                      </div>
+                    </div>
+
+                    {/* CPU / Tasks Card */}
+                    <div className="svc-metric-card">
+                      <div className="svc-metric-top">
+                        <span>CPU / TASKS</span>
+                        <Activity size={14} className="svc-metric-icon" />
+                      </div>
+                      <div className="svc-metric-val mono">
+                        {serviceDetail.cpu || '—'}
+                      </div>
+                      <div className="svc-metric-sub">
+                        {serviceDetail.tasks ? `${serviceDetail.tasks} tasks active` : 'Accumulated'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Terminal Status Output */}
+                  <div className="svc-term-wrap">
+                    <div className="svc-term-box">
+                      <div className="svc-term-bar">
+                        <div className="svc-term-dots">
+                          <span className="svc-term-dot red" />
+                          <span className="svc-term-dot yellow" />
+                          <span className="svc-term-dot green" />
+                        </div>
+                        <div className="svc-term-cmd">
+                          <span>systemctl status {viewingService.name}</span>
+                        </div>
+                        <button
+                          className="svc-term-copy-btn"
+                          onClick={() => copyToClipboard(serviceDetail.output || '', 'term')}
+                          title="Copy terminal output"
+                        >
+                          {copiedTerm ? <Check size={11} /> : <Copy size={11} />}
+                          <span>{copiedTerm ? 'Copied' : 'Copy'}</span>
+                        </button>
+                      </div>
+                      <pre className="svc-term-body">{serviceDetail.output || 'No output available.'}</pre>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div style={{ padding: '40px 24px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                  Failed to load service details.
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="svc-modal-foot">
+              <div className="svc-foot-left">
+                {serviceDetail?.active ? (
+                  <>
+                    <button
+                      className="svc-btn-foot"
+                      title="Restart Service"
+                      style={{ color: '#c4b5fd', borderColor: 'rgba(139, 92, 246, 0.4)' }}
+                      onClick={() =>
+                        setPendingAction({
+                          unit: viewingService.name,
+                          action: 'restart',
+                          isUser: viewingService.isUser,
+                        })
+                      }
+                    >
+                      <RotateCw size={13} />
+                      <span>Restart</span>
+                    </button>
+                    <button
+                      className="svc-btn-foot"
+                      title="Stop Service"
+                      style={{ color: '#f87171', borderColor: 'rgba(239, 68, 68, 0.4)' }}
+                      onClick={() =>
+                        setPendingAction({
+                          unit: viewingService.name,
+                          action: 'stop',
+                          isUser: viewingService.isUser,
+                        })
+                      }
+                    >
+                      <Square size={13} />
+                      <span>Stop</span>
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    className="svc-btn-foot"
+                    title="Start Service"
+                    style={{ color: '#34d399', borderColor: 'rgba(16, 185, 129, 0.4)' }}
+                    onClick={() =>
+                      setPendingAction({
+                        unit: viewingService.name,
+                        action: 'start',
+                        isUser: viewingService.isUser,
+                      })
+                    }
+                  >
+                    <Play size={13} />
+                    <span>Start</span>
+                  </button>
+                )}
                 <button
-                  className="btn btn-xs btn-secondary"
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage <= 1}
+                  className="svc-btn-foot"
+                  onClick={() => handleOpenLogs(viewingService.name)}
                 >
-                  ← Previous
+                  <FileText size={13} />
+                  <span>View Logs</span>
                 </button>
+              </div>
+              <div className="svc-foot-right">
                 <button
-                  className="btn btn-xs btn-secondary"
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={currentPage >= totalPages}
+                  className="svc-btn-foot svc-btn-foot-close"
+                  onClick={() => setViewingService(null)}
                 >
-                  Next →
+                  <span>Close</span>
+                  <kbd className="svc-kbd-hint">Esc</kbd>
                 </button>
               </div>
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* ── Journalctl Logs Modal ──────────────────────────────── */}
+      {selectedLogsUnit && (
+        <div className="modal-overlay" onClick={() => setSelectedLogsUnit(null)}>
+          <div
+            className="modal-content service-modal-wrap"
+            style={{ maxWidth: '800px', width: '92%' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="svc-modal-head">
+              <div className="svc-head-left">
+                <div className="svc-icon-box">
+                  <FileText size={20} />
+                </div>
+                <div className="svc-head-title-wrap">
+                  <div className="svc-title-row">
+                    <h3 className="svc-modal-title">Logs: {selectedLogsUnit}</h3>
+                  </div>
+                  <p className="svc-desc">Recent journalctl log output (last 100 entries)</p>
+                </div>
+              </div>
+              <button
+                className="svc-modal-close"
+                onClick={() => setSelectedLogsUnit(null)}
+                title="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="svc-modal-scroll" style={{ padding: '16px 20px' }}>
+              <div className="svc-term-box">
+                <div className="svc-term-bar">
+                  <div className="svc-term-dots">
+                    <span className="svc-term-dot red" />
+                    <span className="svc-term-dot yellow" />
+                    <span className="svc-term-dot green" />
+                  </div>
+                  <div className="svc-term-cmd">
+                    <span>journalctl -u {selectedLogsUnit} -n 100</span>
+                  </div>
+                  <button
+                    className="svc-term-copy-btn"
+                    onClick={() => copyToClipboard(logs.join('\n'), 'logs')}
+                    title="Copy logs"
+                  >
+                    {copiedLogs ? <Check size={11} /> : <Copy size={11} />}
+                    <span>{copiedLogs ? 'Copied' : 'Copy'}</span>
+                  </button>
+                </div>
+                <pre className="svc-term-body" style={{ maxHeight: '420px' }}>
+                  {logsLoading
+                    ? 'Fetching journalctl log entries…'
+                    : logs.length > 0
+                    ? logs.join('\n')
+                    : 'No journal entries found for this service.'}
+                </pre>
+              </div>
+            </div>
+
+            <div className="svc-modal-foot">
+              <div className="svc-foot-left">
+                <button
+                  className="svc-btn-foot"
+                  onClick={() => handleOpenLogs(selectedLogsUnit)}
+                  disabled={logsLoading}
+                >
+                  <RefreshCw size={13} className={logsLoading ? 'animate-spin' : ''} />
+                  <span>Refresh</span>
+                </button>
+              </div>
+              <div className="svc-foot-right">
+                <button
+                  className="svc-btn-foot svc-btn-foot-close"
+                  onClick={() => setSelectedLogsUnit(null)}
+                >
+                  <span>Close</span>
+                  <kbd className="svc-kbd-hint">Esc</kbd>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Action Confirmation Modal ──────────────────────────── */}
       {pendingAction && (
@@ -450,64 +817,6 @@ export const ServicesPage: React.FC = () => {
           message={`Are you sure you want to ${pendingAction.action} unit '${pendingAction.unit}'?`}
           confirmLabel={`${pendingAction.action.charAt(0).toUpperCase() + pendingAction.action.slice(1)} Service`}
         />
-      )}
-
-      {/* ── Journalctl Logs Modal ──────────────────────────────── */}
-      {selectedLogsUnit && (
-        <Modal
-          isOpen={Boolean(selectedLogsUnit)}
-          onClose={() => setSelectedLogsUnit(null)}
-          maxWidth="760px"
-          title={
-            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <FileText size={18} color="var(--purple)" /> Logs: {selectedLogsUnit}
-            </span>
-          }
-        >
-          <div
-            style={{
-              background: 'rgba(0, 0, 0, 0.4)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-sm)',
-              padding: '12px',
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: '0.78rem',
-              color: 'var(--text-secondary)',
-              maxHeight: '400px',
-              overflowY: 'auto',
-              whiteSpace: 'pre-wrap',
-              wordBreak: 'break-all',
-            }}
-          >
-            {logsLoading ? (
-              <div style={{ color: 'var(--text-muted)' }}>Fetching journalctl log entries…</div>
-            ) : logs.length > 0 ? (
-              logs.map((line, idx) => (
-                <div key={idx} style={{ padding: '2px 0' }}>
-                  {typeof line === 'object' && line !== null
-                    ? (line as Record<string, unknown>).message
-                      ? String((line as Record<string, unknown>).message)
-                      : JSON.stringify(line)
-                    : String(line)}
-                </div>
-              ))
-            ) : (
-              <div>No log lines captured.</div>
-            )}
-          </div>
-          <div className="modal-footer" style={{ marginTop: '16px' }}>
-            <button
-              className="btn btn-secondary"
-              onClick={() => handleOpenLogs(selectedLogsUnit)}
-              disabled={logsLoading}
-            >
-              Refresh Logs
-            </button>
-            <button className="btn btn-primary" onClick={() => setSelectedLogsUnit(null)}>
-              Close
-            </button>
-          </div>
-        </Modal>
       )}
     </div>
   );

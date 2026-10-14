@@ -29,9 +29,13 @@ def list_services(user_only: bool = False, system_only: bool = False) -> list[di
                 if len(parts) >= 4:
                     results.append({
                         "name": parts[0],
+                        "unit": parts[0],
                         "load_state": parts[1],
+                        "load": parts[1],
                         "active_state": parts[2],
+                        "active": parts[2],
                         "sub_state": parts[3],
+                        "sub": parts[3],
                         "scope": "user",
                     })
     
@@ -50,9 +54,13 @@ def list_services(user_only: bool = False, system_only: bool = False) -> list[di
                 if len(parts) >= 4:
                     results.append({
                         "name": parts[0],
+                        "unit": parts[0],
                         "load_state": parts[1],
+                        "load": parts[1],
                         "active_state": parts[2],
+                        "active": parts[2],
                         "sub_state": parts[3],
+                        "sub": parts[3],
                         "scope": "system",
                     })
     

@@ -119,6 +119,29 @@ async def api_service_action(
     }
 
 
+from pydantic import BaseModel
+
+
+class ServiceActionPayload(BaseModel):
+    service: str
+    action: str
+    user: bool = False
+
+
+@router.post("/services/action", summary="Execute action on service via body")
+@router.post("/system/services/action", include_in_schema=False)
+async def api_service_action_body(
+    payload: ServiceActionPayload,
+    session: UserSession = Depends(require_session),
+):
+    return await api_service_action(
+        service_name=payload.service,
+        action=payload.action,
+        user=payload.user,
+        session=session,
+    )
+
+
 # ---- Storage / Disk ----
 
 @router.get("/storage", summary="Get storage usage")
