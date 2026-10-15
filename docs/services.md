@@ -65,3 +65,10 @@ User and group account management:
 - Categorizes Linux groups into `Privileged`, `Hardware`, `Services`, and `System` with human-readable descriptions.
 - Parses public SSH keys from `~/.ssh/authorized_keys`.
 - Audits system security posture (`sudo`, `doas`, `visudo`, `sshd_config`).
+- Enumerates active terminal and SSH sessions and recent login history.
+
+### 9. `power.py`
+System power control operations:
+- Wrappers for `reboot`, `poweroff`, and `suspend` via `systemctl`.
+- Scheduled shutdown/reboot support with configurable delay and message.
+- Cancellation of pending scheduled power actions.

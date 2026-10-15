@@ -65,10 +65,10 @@ Lavender is a lightweight, responsive FastAPI web dashboard designed for Linux s
   - `storage.py`: Disk partition parsing (`df -h`) and external mount detection.
   - `processes.py`: Process listing supporting both procps and BusyBox formats.
   - `network.py`: Adapter status, IP address resolution, and Wi-Fi scanning.
-  - `battery.py`: UPower and sysfs battery/thermal monitoring.
+  - `battery.py`: Sysfs and UPower battery/thermal monitoring, CPU frequency/governor management, and system uptime.
   - `packages.py`: Multi-distribution package manager abstraction (Alpine `apk`, Debian/Ubuntu `apt`, Arch `pacman`, Fedora `dnf`).
   - `power.py`: System power operations (`reboot`, `poweroff`, `suspend`).
-  - `users.py`: User, group, and access control inspection.
+  - `users.py`: User, group, access control inspection, active sessions, and login history.
 
 ### 4. System Interface Layer
 - **`dependencies.py` & `dashboard/auth/bridge.py`:**

@@ -25,7 +25,7 @@ All API endpoints are mounted under the FastAPI application with the following p
 | `GET` | `/api/system/services/{service_name}/logs?lines={n}&user={bool}` | Authenticated | Fetch recent service journal logs. |
 | `POST` | `/api/system/services/{service_name}/{action}?user={bool}` | Authenticated (Admin for system) | Run action (`start`, `stop`, `restart`, `enable`, `disable`). |
 | `GET` | `/api/system/storage` | Public | Get filesystem and disk usage statistics. |
-| `GET` | `/api/system/processes?sort_by={cpu\|mem\|pid\|user\|name}&limit={n}` | Public | Get process list and load averages. |
+| `GET` | `/api/system/processes?sort_by={cpu\|mem\|pid\|user\|name}&limit={n}` | Public | Get process list, load averages, and human-readable memory stats. |
 | `POST` | `/api/system/processes/kill?pid={n}` | Admin | Terminate process by PID. |
 | `GET` | `/api/system/memory` | Public | Get human-readable and raw memory statistics. |
 | `GET` | `/api/system/logs?lines={n}` | Public | Fetch recent system journal entries. |
@@ -39,14 +39,14 @@ All API endpoints are mounted under the FastAPI application with the following p
 | `GET` | `/api/device/network/ping?target={host}&count={n}` | Authenticated | Perform ping latency test. |
 | `GET` | `/api/device/network/dns-query?domain={domain}` | Authenticated | Measure DNS lookup latency. |
 | `POST` | `/api/device/network/wifi-scan` | Authenticated | Trigger scan for nearby wireless networks. |
-| `GET` | `/api/device/battery` | Public | Get battery status, thermal zones, and CPU frequencies. |
-| `GET` | `/api/device/packages` | Authenticated | Get installed package count and upgradable packages. |
-| `POST` | `/api/device/packages/upgrade` | Admin | Run package upgrade. |
+| `GET` | `/api/device/battery` | Public | Get battery status, thermal zones, CPU frequencies, available CPU scaling governors, and system uptime. |
+| `GET` | `/api/device/packages?refresh={bool}&include_list={bool}` | Authenticated | Get package overview: backend info, installed count, upgradable list, and optionally the full installed package list. |
+| `POST` | `/api/device/packages/upgrade?package={name}` | Admin | Upgrade all packages, or a single package when `package` is specified. |
 | `POST` | `/api/device/packages/install?package={name}` | Admin | Install a package. |
 | `POST` | `/api/device/packages/remove?package={name}` | Admin | Remove a package. |
 | `GET` | `/api/device/packages/search?query={q}` | Authenticated | Search package repository. |
 | `GET` | `/api/device/packages/info?package={name}` | Authenticated | Get package details. |
-| `GET` | `/api/device/users` | Authenticated | Get system users, all accounts, groups, current user, and sudoers status. |
+| `GET` | `/api/device/users` | Authenticated | Get human and system users, categorized groups, active sessions, login history, security posture, and summary metrics. |
 | `POST` | `/api/device/users/session/terminate` | Admin | Terminate an active terminal or SSH session. |
 | `GET` | `/api/device/users/{username}/ssh-keys` | Authenticated (Self or Admin) | List a user's public SSH keys. |
 | `POST` | `/api/device/users/{username}/ssh-keys` | Authenticated (Self or Admin) | Add a public SSH key. |
