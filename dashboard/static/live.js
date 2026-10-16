@@ -628,7 +628,29 @@
         }
         el.innerHTML = logs.map(function(l) {
             var dotColor = l.level === 'error' ? 'var(--red)' : (l.level === 'warning' ? 'var(--yellow)' : 'var(--green)');
-            var ts = (l.timestamp || '--:--').toString().slice(0, 8);
+            function formatLogTs(tsRaw) {
+                if (tsRaw === null || tsRaw === undefined) return '--:--';
+                var tsStr = tsRaw.toString();
+                // If it's epoch seconds or milliseconds, convert to local time.
+                var n = Number(tsStr);
+                if (!isNaN(n) && n > 0) {
+                    // Heuristic: 10 digits => seconds, 13 digits => ms.
+                    var ms = tsStr.length >= 13 ? n : (n * 1000);
+                    var d = new Date(ms);
+                    if (isNaN(d.getTime())) return tsStr;
+                    var hh = String(d.getHours()).padStart(2, '0');
+                    var mm = String(d.getMinutes()).padStart(2, '0');
+                    var ss = String(d.getSeconds()).padStart(2, '0');
+                    var ap = hh >= 12 ? 'PM' : 'AM';
+                    var hh12 = hh % 12;
+                    if (hh12 === 0) hh12 = 12;
+                    return String(hh12).padStart(2, '0') + ':' + mm + ':' + ss + ' ' + ap;
+                }
+                // Fallback: show first 8 chars (legacy behavior)
+                return tsStr.slice(0, 8);
+            }
+
+            var ts = formatLogTs(l.timestamp);
             return '<div class="log-entry">'
                 + '<span class="log-time">' + ts + '</span>'
                 + '<span class="log-dot" style="background:' + dotColor + ';"></span>'
