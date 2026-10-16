@@ -88,6 +88,65 @@ class TestNetworkService:
         assert get_known_dns_provider("127.0.0.1") == "Local Stub Resolver"
         assert get_known_dns_provider("192.168.1.1") == "Local Router / Gateway"
 
+    def test_primary_interface_prioritizes_wifi_ethernet_usb_over_tailscale(self, monkeypatch):
+        """Test that WiFi, Ethernet, and USB interfaces are prioritized over Tailscale."""
+        from dashboard.services.live import NetworkRateCollector
+        collector = NetworkRateCollector()
+
+        # Mock operstate and default route on the class (due to __slots__)
+        monkeypatch.setattr(
+            NetworkRateCollector,
+            "_interface_operstate",
+            staticmethod(lambda iface: "up" if iface in ("wlan0", "eth0", "usb0") else ("down" if iface == "enp0" else "unknown")),
+        )
+        monkeypatch.setattr(NetworkRateCollector, "_default_route_interface", staticmethod(lambda: "wlan0"))
+
+        # Scenario 1: Tailscale vs WiFi (both have traffic)
+        counters = {
+            "tailscale0": (50000, 20000),
+            "wlan0": (1000000, 500000),
+            "lo": (10000, 10000),
+        }
+        assert collector._primary_interface(counters) == "wlan0"
+
+        # Scenario 2: Tailscale vs USB tethering
+        monkeypatch.setattr(NetworkRateCollector, "_default_route_interface", staticmethod(lambda: "usb0"))
+        counters = {
+            "tailscale0": (50000, 20000),
+            "usb0": (800000, 400000),
+        }
+        assert collector._primary_interface(counters) == "usb0"
+
+        # Scenario 3: Tailscale vs Ethernet
+        monkeypatch.setattr(NetworkRateCollector, "_default_route_interface", staticmethod(lambda: "eth0"))
+        counters = {
+            "tailscale0": (50000, 20000),
+            "eth0": (900000, 300000),
+        }
+        assert collector._primary_interface(counters) == "eth0"
+
+        # Scenario 4: WiFi is up with 0 bytes, Tailscale has traffic -> WiFi still preferred
+        monkeypatch.setattr(NetworkRateCollector, "_default_route_interface", staticmethod(lambda: "wlan0"))
+        counters = {
+            "tailscale0": (50000, 20000),
+            "wlan0": (0, 0),
+        }
+        assert collector._primary_interface(counters) == "wlan0"
+
+        # Scenario 5: Physical interfaces are down with 0 bytes, only Tailscale is active
+        monkeypatch.setattr(NetworkRateCollector, "_default_route_interface", staticmethod(lambda: None))
+        monkeypatch.setattr(
+            NetworkRateCollector,
+            "_interface_operstate",
+            staticmethod(lambda iface: "down" if iface in ("wlan0", "usb0") else "unknown"),
+        )
+        counters = {
+            "tailscale0": (50000, 20000),
+            "wlan0": (0, 0),
+            "usb0": (0, 0),
+        }
+        assert collector._primary_interface(counters) == "tailscale0"
+
 
 class TestPackagesService:
     """Test packages service functions."""

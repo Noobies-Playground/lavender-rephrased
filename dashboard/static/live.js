@@ -401,7 +401,7 @@
         var localIp = '—', primaryIface = '—';
         ifaces.forEach(function(iface) {
             if (iface.state === 'UP' && iface.name !== 'lo') {
-                if (iface.name.indexOf('usb') === 0 || iface.name.indexOf('eth') === 0 || iface.name.indexOf('rmnet') === 0) {
+                if (iface.name.indexOf('wlan') === 0 || iface.name.indexOf('wlp') === 0 || iface.name.indexOf('wlo') === 0 || iface.name.indexOf('usb') === 0 || iface.name.indexOf('eth') === 0 || iface.name.indexOf('rmnet') === 0) {
                     if (primaryIface === '—') primaryIface = iface.name;
                 }
                 iface.addresses.forEach(function(addr) {
