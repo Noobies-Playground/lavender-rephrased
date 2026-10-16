@@ -129,3 +129,46 @@ class TestPowerService:
         mock_cmd.return_value = (1, "", "")
         res = get_scheduled_shutdown()
         assert res["scheduled"] is False
+
+
+class TestSystemdService:
+    """Test systemd service functions."""
+
+    @patch("dashboard.services.systemd.run_command")
+    def test_get_recent_logs_parses_realtime_timestamp(self, mock_cmd):
+        import json
+        from dashboard.services.systemd import get_recent_logs
+        mock_entry = {
+            "__REALTIME_TIMESTAMP": "1792166401792781",
+            "MESSAGE": "usb 1-4: new high-speed USB device",
+            "PRIORITY": "6",
+            "_SYSTEMD_UNIT": "systemd-udevd.service",
+        }
+        mock_cmd.return_value = (0, json.dumps(mock_entry), "")
+        logs = get_recent_logs(lines=1)
+        assert len(logs) == 1
+        log = logs[0]
+        assert "T" in log["timestamp"]
+        assert "+00:00" in log["timestamp"] or "Z" in log["timestamp"]
+        assert log["service"] == "systemd-udevd.service"
+        assert log["level"] == "info"
+        assert "usb 1-4" in log["message"]
+
+    @patch("dashboard.services.systemd.run_command")
+    def test_get_recent_logs_fallback_syslog_timestamp(self, mock_cmd):
+        import json
+        from dashboard.services.systemd import get_recent_logs
+        mock_entry = {
+            "SYSLOG_TIMESTAMP": "Oct 16 22:00:01 ",
+            "MESSAGE": "CRON[123]: job done",
+            "PRIORITY": "4",
+            "SYSLOG_IDENTIFIER": "CRON",
+        }
+        mock_cmd.return_value = (0, json.dumps(mock_entry), "")
+        logs = get_recent_logs(lines=1)
+        assert len(logs) == 1
+        log = logs[0]
+        assert log["timestamp"] == "Oct 16 22:00:01 "
+        assert log["service"] == "CRON"
+        assert log["level"] == "warning"
+

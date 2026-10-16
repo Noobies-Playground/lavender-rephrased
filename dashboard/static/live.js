@@ -628,34 +628,91 @@
         }
         el.innerHTML = logs.map(function(l) {
             var dotColor = l.level === 'error' ? 'var(--red)' : (l.level === 'warning' ? 'var(--yellow)' : 'var(--green)');
-            function formatLogTs(tsRaw) {
-                if (tsRaw === null || tsRaw === undefined) return '--:--';
-                var tsStr = tsRaw.toString();
-                // If it's epoch seconds or milliseconds, convert to local time.
-                var n = Number(tsStr);
-                if (!isNaN(n) && n > 0) {
-                    // Robust heuristic: decide by magnitude (epoch seconds vs ms).
-                    // seconds ~ 1e9, milliseconds ~ 1e12+
-                    var ms = (n >= 1e12) ? n : (n * 1000);
-                    var d = new Date(ms);
-                    if (isNaN(d.getTime())) return tsStr;
-                    var hh = String(d.getHours()).padStart(2, '0');
-                    var mm = String(d.getMinutes()).padStart(2, '0');
-                    var ss = String(d.getSeconds()).padStart(2, '0');
-                    var ap = hh >= 12 ? 'PM' : 'AM';
-                    var hh12 = hh % 12;
-                    if (hh12 === 0) hh12 = 12;
-                    return String(hh12).padStart(2, '0') + ':' + mm + ':' + ss + ' ' + ap;
+            function formatLogTs(rawTimestamp) {
+                if (rawTimestamp === null || rawTimestamp === undefined || rawTimestamp === '') {
+                    return { time: '•', full: '' };
                 }
-                // Fallback: show first 8 chars (legacy behavior)
-                return tsStr.slice(0, 8);
+                var str = String(rawTimestamp).trim();
+                if (!str) return { time: '•', full: '' };
+
+                // If already a pre-formatted time like "23:59:01" or "11:59 PM"
+                if (/^\d{1,2}:\d{2}(:\d{2})?( ?[AP]M)?$/i.test(str)) {
+                    return { time: str, full: str };
+                }
+
+                var date = null;
+
+                // If numeric epoch timestamp: microseconds (journalctl), milliseconds, or seconds
+                if (/^\d+$/.test(str)) {
+                    var num = Number(str);
+                    if (!isNaN(num) && num > 0) {
+                        if (num > 1e12) {
+                            // Microseconds (journalctl __REALTIME_TIMESTAMP)
+                            date = new Date(Math.floor(num / 1000));
+                        } else if (num > 1e9) {
+                            // Milliseconds
+                            date = new Date(num);
+                        } else {
+                            // Seconds
+                            date = new Date(num * 1000);
+                        }
+                    }
+                } else {
+                    // Try parsing as ISO-8601 or standard date format
+                    var parsed = new Date(str);
+                    if (!isNaN(parsed.getTime())) {
+                        date = parsed;
+                    }
+                }
+
+                if (!date || isNaN(date.getTime())) {
+                    return { time: str, full: str };
+                }
+
+                // Format time in client's local machine timezone
+                var timeStr = date.toLocaleTimeString(undefined, {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+
+                var fullStr = date.toLocaleString(undefined, {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+
+                var now = new Date();
+                var isSameDay =
+                    date.getFullYear() === now.getFullYear() &&
+                    date.getMonth() === now.getMonth() &&
+                    date.getDate() === now.getDate();
+
+                if (isSameDay) {
+                    return { time: timeStr, full: fullStr };
+                }
+
+                var dateStr = date.toLocaleDateString(undefined, {
+                    month: 'short',
+                    day: 'numeric'
+                });
+
+                return { time: dateStr + ' ' + timeStr, full: fullStr };
             }
 
-            var ts = formatLogTs(l.timestamp);
+            var timeInfo = formatLogTs(l.timestamp);
+            var titleAttr = timeInfo.full ? ' title="' + (typeof escapeHtml === 'function' ? escapeHtml(timeInfo.full) : timeInfo.full) + '"' : '';
+            var svcPrefix = l.service ? (typeof escapeHtml === 'function' ? escapeHtml(l.service) : l.service) + ': ' : '';
+            var msgText = typeof escapeHtml === 'function' ? escapeHtml(l.message || '') : (l.message || '');
+            var timeText = typeof escapeHtml === 'function' ? escapeHtml(timeInfo.time) : timeInfo.time;
+
             return '<div class="log-entry">'
-                + '<span class="log-time">' + ts + '</span>'
+                + '<span class="log-time"' + titleAttr + '>' + timeText + '</span>'
                 + '<span class="log-dot" style="background:' + dotColor + ';"></span>'
-                + '<span class="log-msg">' + (l.message || '') + '</span>'
+                + '<span class="log-msg">' + svcPrefix + msgText + '</span>'
                 + '</div>';
         }).join('');
     }

@@ -1,6 +1,8 @@
 """
 Systemd service management.
 """
+import datetime
+import json
 import subprocess
 import re
 from typing import Optional
@@ -229,24 +231,28 @@ def get_recent_logs(lines: int = 20) -> list[dict]:
     for raw_line in out.strip().split("\n"):
         if not raw_line:
             continue
-        import json as _json
         try:
-            entry = _json.loads(raw_line)
+            entry = json.loads(raw_line)
         except Exception:
             continue
         # Extract timestamp
-        ts = entry.get("__REALTIME_TIMESTAMP", "")
-        # Format as HH:MM:SS
+        raw_ts = entry.get("__REALTIME_TIMESTAMP") or entry.get("_SOURCE_REALTIME_TIMESTAMP")
         timestamp = ""
-        if ts and "T" in ts:
+        if raw_ts:
             try:
-                timestamp = ts.split("T")[1][:8]
+                us = int(raw_ts)
+                if us > 10**12:
+                    secs = us / 1_000_000.0
+                elif us > 10**9:
+                    secs = us / 1_000.0
+                else:
+                    secs = float(us)
+                dt = datetime.datetime.fromtimestamp(secs, tz=datetime.timezone.utc)
+                timestamp = dt.isoformat()
             except Exception:
-                timestamp = ts[-8:]
-        elif ts:
-            timestamp = ts[-8:]
+                timestamp = str(raw_ts)
         else:
-            timestamp = "--:--"
+            timestamp = entry.get("SYSLOG_TIMESTAMP", "")
 
         message = entry.get("MESSAGE", "").strip()
         if isinstance(message, list):

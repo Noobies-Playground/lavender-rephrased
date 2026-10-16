@@ -75,3 +75,18 @@ async def test_protected_route_redirects_unauthenticated():
         response = await client.get("/services", follow_redirects=False)
         assert response.status_code == 307
         assert "/login" in response.headers.get("location", "")
+
+
+@pytest.mark.asyncio
+async def test_system_logs_api():
+    """Test /api/system/logs endpoint."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        response = await client.get("/api/system/logs?lines=5")
+        assert response.status_code == 200
+        data = response.json()
+        assert "logs" in data
+        assert "count" in data
+        assert isinstance(data["logs"], list)
+

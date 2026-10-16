@@ -706,6 +706,8 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
     flex-shrink: 0;
+    white-space: nowrap;
+    cursor: default;
     padding-top: 1px;
 }
 
