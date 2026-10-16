@@ -23,7 +23,7 @@ test:
 
 # Run frontend tests with bun
 test-frontend:
-	cd frontend && bun test
+	cd frontend && bun run test
 
 clean:
 	rm -rf server/dist frontend/node_modules .venv uv.lock

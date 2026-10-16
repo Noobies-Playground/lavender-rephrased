@@ -8,10 +8,18 @@ Clients subscribe to specific metrics via query params:
 import asyncio
 import json
 import logging
+import time
 
 from fastapi import APIRouter, Query
 from fastapi.responses import StreamingResponse
 
+from server.core.config import (
+    SSE_BATTERY_INTERVAL_MS,
+    SSE_CPU_INTERVAL_MS,
+    SSE_NETWORK_INTERVAL_MS,
+    SSE_RAM_INTERVAL_MS,
+    SSE_THERMAL_INTERVAL_MS,
+)
 from server.services.live import get_live_monitor
 
 
@@ -21,13 +29,22 @@ router = APIRouter()
 
 ALLOWED_METRICS = ("cpu", "ram", "thermal", "battery", "network")
 
+METRIC_INTERVALS = {
+    "cpu": SSE_CPU_INTERVAL_MS / 1000.0,
+    "ram": SSE_RAM_INTERVAL_MS / 1000.0,
+    "thermal": SSE_THERMAL_INTERVAL_MS / 1000.0,
+    "battery": SSE_BATTERY_INTERVAL_MS / 1000.0,
+    "network": SSE_NETWORK_INTERVAL_MS / 1000.0,
+}
+
 
 async def sse_generator(metrics: list[str] | None):
     """Generate SSE events pulling from the live monitor buffers.
 
-    The SSE generator itself reads fresh metric values via the live monitor
-    getter methods (which do real-time sysfs reads). The background collector
-    threads also run independently to populate ring buffers for sparkline history.
+    Each metric is streamed on its own individually configured interval
+    (CPU: 1s, Network: 2s, RAM: 3s, Battery: 3s, Thermal: 5s).
+    On client connection, an initial sample of all requested metrics is yielded
+    immediately so the client displays live data without initial delay.
     """
     monitor = get_live_monitor()
     if metrics:
@@ -43,27 +60,47 @@ async def sse_generator(metrics: list[str] | None):
         "network": monitor.get_network,
     }
 
+    async def _emit_metric(metric: str) -> str:
+        try:
+            data = await getters[metric]()
+        except Exception:
+            # One bad sensor read must not kill the whole stream, but
+            # it should still be visible in the logs and to the client.
+            logger.exception("SSE collector failed for metric %r", metric)
+            payload = json.dumps(
+                {"metric": metric, "error": "collect_failed"},
+                separators=(",", ":"),
+            )
+        else:
+            payload = json.dumps(
+                {"metric": metric, "data": data}, separators=(",", ":")
+            )
+        return f"data: {payload}\n\n"
+
     # Start background collectors on first SSE client
     await monitor.add_client()
     try:
+        # Initial burst: emit current state for all requested metrics immediately
+        for metric in requested:
+            yield await _emit_metric(metric)
+
+        now = time.monotonic()
+        next_send = {
+            metric: now + METRIC_INTERVALS.get(metric, 1.0)
+            for metric in requested
+        }
+
         while True:
-            for metric in requested:
-                try:
-                    data = await getters[metric]()
-                except Exception:
-                    # One bad sensor read must not kill the whole stream, but
-                    # it should still be visible in the logs and to the client.
-                    logger.exception("SSE collector failed for metric %r", metric)
-                    payload = json.dumps(
-                        {"metric": metric, "error": "collect_failed"},
-                        separators=(",", ":"),
-                    )
-                else:
-                    payload = json.dumps(
-                        {"metric": metric, "data": data}, separators=(",", ":")
-                    )
-                yield f"data: {payload}\n\n"
-            await asyncio.sleep(1)
+            now = time.monotonic()
+            due = [m for m in requested if now >= next_send[m]]
+            for metric in due:
+                yield await _emit_metric(metric)
+                interval = METRIC_INTERVALS.get(metric, 1.0)
+                next_send[metric] = max(now + interval, next_send[metric] + interval)
+
+            next_due_time = min(next_send[m] for m in requested)
+            sleep_sec = max(0.05, next_due_time - time.monotonic())
+            await asyncio.sleep(sleep_sec)
     except asyncio.CancelledError:
         raise
     finally:

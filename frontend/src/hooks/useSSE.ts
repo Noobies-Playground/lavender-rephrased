@@ -8,6 +8,7 @@ interface UseSSEOptions {
   enabled?: boolean;
   maxReconnectDelay?: number;
   initialReconnectDelay?: number;
+  onMetric?: (metric: string, data: any) => void;
 }
 
 export function useSSE(options: UseSSEOptions = {}) {
@@ -16,6 +17,7 @@ export function useSSE(options: UseSSEOptions = {}) {
     enabled = true,
     initialReconnectDelay = 1000,
     maxReconnectDelay = 15000,
+    onMetric,
   } = options;
 
   const [data, setData] = useState<LiveTelemetryData | null>(null);
@@ -25,6 +27,11 @@ export function useSSE(options: UseSSEOptions = {}) {
   const eventSourceRef = useRef<EventSource | null>(null);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectDelayRef = useRef(initialReconnectDelay);
+  const onMetricRef = useRef(onMetric);
+
+  useEffect(() => {
+    onMetricRef.current = onMetric;
+  }, [onMetric]);
 
   const closeStream = useCallback(() => {
     if (reconnectTimerRef.current) {
@@ -62,11 +69,15 @@ export function useSSE(options: UseSSEOptions = {}) {
                 ...prev,
                 [parsed.metric]: parsed.data,
               }));
+              onMetricRef.current?.(parsed.metric, parsed.data);
             } else {
               setData((prev) => ({
                 ...prev,
                 ...parsed,
               }));
+              Object.entries(parsed).forEach(([k, v]) => {
+                onMetricRef.current?.(k, v);
+              });
             }
           }
         } catch (err) {

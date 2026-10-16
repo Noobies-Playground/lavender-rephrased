@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useSSE } from '../../hooks/useSSE';
 import { api } from '../../api/client';
@@ -80,13 +80,81 @@ function buildCoreSparkPath(buf: number[], w = 80, h = 24): string {
 }
 
 export const OverviewPage: React.FC = () => {
-  const { data: liveData } = useSSE();
-
   // Historical sparkline buffers
   const [ramHistory, setRamHistory] = useState<number[]>([]);
   const [netUpHistory, setNetUpHistory] = useState<number[]>([]);
   const [netDownHistory, setNetDownHistory] = useState<number[]>([]);
   const [coreBuffers, setCoreBuffers] = useState<Record<number, number[]>>({});
+
+  // Per-metric sparkline buffer updates only when the specific metric updates
+  const handleMetricUpdate = useCallback((metric: string, metricData: any) => {
+    if (metric === 'ram') {
+      if (metricData?.used_pct !== undefined) {
+        setRamHistory((prev) => {
+          const next = [...prev, metricData.used_pct];
+          return next.length > MAX_BUF ? next.slice(next.length - MAX_BUF) : next;
+        });
+      }
+    } else if (metric === 'network') {
+      const tx = metricData?.tx_rate_bps ?? metricData?.tx_rate ?? metricData?.tx_bytes_sec;
+      if (tx !== undefined) {
+        setNetUpHistory((prev) => {
+          const next = [...prev, tx];
+          return next.length > MAX_BUF ? next.slice(next.length - MAX_BUF) : next;
+        });
+      }
+      const rx = metricData?.rx_rate_bps ?? metricData?.rx_rate ?? metricData?.rx_bytes_sec;
+      if (rx !== undefined) {
+        setNetDownHistory((prev) => {
+          const next = [...prev, rx];
+          return next.length > MAX_BUF ? next.slice(next.length - MAX_BUF) : next;
+        });
+      }
+    } else if (metric === 'cpu') {
+      if (metricData?.per_core_usage && metricData.per_core_usage.length > 0) {
+        setCoreBuffers((prev) => {
+          const updated = { ...prev };
+          metricData.per_core_usage.forEach((c: { core: number; usage?: number | null }) => {
+            const coreIdx = c.core;
+            const usage = c.usage !== null && c.usage !== undefined ? c.usage : 0;
+            const curr = updated[coreIdx] ? [...updated[coreIdx]] : [];
+            curr.push(usage);
+            if (curr.length > MAX_BUF) curr.shift();
+            updated[coreIdx] = curr;
+          });
+          return updated;
+        });
+      }
+    }
+  }, []);
+
+  const { data: liveData } = useSSE({ onMetric: handleMetricUpdate });
+
+  // Seed buffers once from initial telemetry data (e.g. test mocks or first frame)
+  const seededRef = useRef(false);
+  useEffect(() => {
+    if (!seededRef.current && liveData) {
+      if (liveData.ram?.used_pct !== undefined && ramHistory.length === 0) {
+        setRamHistory([liveData.ram.used_pct]);
+      }
+      const tx = liveData.network?.tx_rate_bps ?? liveData.network?.tx_rate ?? liveData.network?.tx_bytes_sec;
+      if (tx !== undefined && netUpHistory.length === 0) {
+        setNetUpHistory([tx]);
+      }
+      const rx = liveData.network?.rx_rate_bps ?? liveData.network?.rx_rate ?? liveData.network?.rx_bytes_sec;
+      if (rx !== undefined && netDownHistory.length === 0) {
+        setNetDownHistory([rx]);
+      }
+      if (liveData.cpu?.per_core_usage && liveData.cpu.per_core_usage.length > 0 && Object.keys(coreBuffers).length === 0) {
+        const initialCores: Record<number, number[]> = {};
+        liveData.cpu.per_core_usage.forEach((c) => {
+          initialCores[c.core] = [c.usage ?? 0];
+        });
+        setCoreBuffers(initialCores);
+      }
+      seededRef.current = true;
+    }
+  }, [liveData, ramHistory.length, netUpHistory.length, netDownHistory.length, coreBuffers]);
 
   // REST data state
   const [storageData, setStorageData] = useState<StorageOverviewResponse | null>(null);
@@ -96,63 +164,17 @@ export const OverviewPage: React.FC = () => {
   const [restBattery, setRestBattery] = useState<BatteryTelemetry | null>(null);
   const [restThermal, setRestThermal] = useState<ThermalZone[] | null>(null);
 
-  // Update sparkline buffers whenever live telemetry ticks
+  // Initial load for overview cards (storage, services, logs, initial battery/thermal fallback)
   useEffect(() => {
-    if (!liveData) return;
-
-    // RAM buffer
-    if (liveData.ram?.used_pct !== undefined) {
-      setRamHistory((prev) => {
-        const next = [...prev, liveData.ram!.used_pct!];
-        return next.length > MAX_BUF ? next.slice(next.length - MAX_BUF) : next;
-      });
-    }
-
-    // Network buffers (handle both bps and legacy rate keys)
-    const tx = liveData.network?.tx_rate_bps ?? liveData.network?.tx_rate ?? liveData.network?.tx_bytes_sec;
-    if (tx !== undefined) {
-      setNetUpHistory((prev) => {
-        const next = [...prev, tx];
-        return next.length > MAX_BUF ? next.slice(next.length - MAX_BUF) : next;
-      });
-    }
-
-    const rx = liveData.network?.rx_rate_bps ?? liveData.network?.rx_rate ?? liveData.network?.rx_bytes_sec;
-    if (rx !== undefined) {
-      setNetDownHistory((prev) => {
-        const next = [...prev, rx];
-        return next.length > MAX_BUF ? next.slice(next.length - MAX_BUF) : next;
-      });
-    }
-
-    // CPU per-core buffers
-    if (liveData.cpu?.per_core_usage && liveData.cpu.per_core_usage.length > 0) {
-      setCoreBuffers((prev) => {
-        const updated = { ...prev };
-        liveData.cpu!.per_core_usage!.forEach((c) => {
-          const coreIdx = c.core;
-          const usage = c.usage !== null && c.usage !== undefined ? c.usage : 0;
-          const curr = updated[coreIdx] ? [...updated[coreIdx]] : [];
-          curr.push(usage);
-          if (curr.length > MAX_BUF) curr.shift();
-          updated[coreIdx] = curr;
-        });
-        return updated;
-      });
-    }
-  }, [liveData]);
-
-  // Initial REST fetch & periodic background refresh
-  const fetchRestData = useRef(async () => {
-    try {
-      const [storage, services, logs, procs, batt] = await Promise.allSettled([
-        api.get<StorageOverviewResponse>('/api/system/storage'),
-        api.get<ServicesListResponse>('/api/system/services'),
-        api.get<{ logs: SystemLogItem[] }>('/api/system/logs?limit=30'),
-        api.get<ProcessesOverviewResponse>('/api/system/processes?sort_by=mem&limit=10'),
-        api.get<{ battery?: BatteryTelemetry; thermal?: ThermalZone[] }>('/api/device/battery'),
-      ]);
-
+    let isMounted = true;
+    Promise.allSettled([
+      api.get<StorageOverviewResponse>('/api/system/storage'),
+      api.get<ServicesListResponse>('/api/system/services'),
+      api.get<{ logs: SystemLogItem[] }>('/api/system/logs?limit=30'),
+      api.get<ProcessesOverviewResponse>('/api/system/processes?sort_by=mem&limit=10'),
+      api.get<{ battery?: BatteryTelemetry; thermal?: ThermalZone[] }>('/api/device/battery'),
+    ]).then(([storage, services, logs, procs, batt]) => {
+      if (!isMounted) return;
       if (storage.status === 'fulfilled' && storage.value) setStorageData(storage.value);
       if (services.status === 'fulfilled' && services.value) setServicesData(services.value);
       if (logs.status === 'fulfilled' && logs.value?.logs) setRecentLogs(logs.value.logs);
@@ -161,19 +183,23 @@ export const OverviewPage: React.FC = () => {
         if (batt.value.battery) setRestBattery(batt.value.battery);
         if (batt.value.thermal) setRestThermal(batt.value.thermal);
       }
-    } catch {
-      // background polling error tolerance
-    }
-  });
+    });
 
-  useEffect(() => {
-    fetchRestData.current();
-    const interval = setInterval(() => {
-      if (!document.hidden) {
-        fetchRestData.current();
+    // Top processes refreshes periodically (every 5s, matching main branch)
+    const procInterval = setInterval(() => {
+      if (!document.hidden && isMounted) {
+        api.get<ProcessesOverviewResponse>('/api/system/processes?sort_by=mem&limit=10')
+          .then((res) => {
+            if (isMounted && res) setTopProcesses(res);
+          })
+          .catch(() => {});
       }
-    }, 6000);
-    return () => clearInterval(interval);
+    }, 5000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(procInterval);
+    };
   }, []);
 
   // Thermal zones resolution (live SSE takes precedence, fallback to REST)

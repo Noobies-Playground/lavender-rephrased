@@ -119,6 +119,24 @@ describe('useSSE Hook', () => {
     expect(result.current.data?.ram?.used_pct).toBe(68);
   });
 
+  it('triggers onMetric callback when metric messages arrive', async () => {
+    const onMetric = vi.fn();
+    renderHook(() => useSSE({ url: '/api/test/stream', onMetric }));
+
+    await act(async () => {
+      vi.advanceTimersByTime(10);
+    });
+
+    act(() => {
+      MockEventSource.instances[0].emitMessage({
+        metric: 'thermal',
+        data: [{ name: 'cpu-ss0', temp: 45 }],
+      });
+    });
+
+    expect(onMetric).toHaveBeenCalledWith('thermal', [{ name: 'cpu-ss0', temp: 45 }]);
+  });
+
   it('handles disconnect and attempts reconnection', async () => {
     const { result } = renderHook(() =>
       useSSE({ url: '/api/test/stream', initialReconnectDelay: 500 })
