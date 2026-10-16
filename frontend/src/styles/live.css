@@ -426,10 +426,10 @@
     display: flex;
 }
 
-/* Area fill under the curve — rendered by gradient path from JS */
+/* Area fill under the curve — rendered smoothly by JS rAF */
 .sparkline-area {
     stroke: none;
-    transition: d 0.3s ease;
+    will-change: d;
 }
 
 /* The line itself */
@@ -438,7 +438,7 @@
     stroke-width: 0.9;
     stroke-linecap: round;
     stroke-linejoin: round;
-    transition: d 0.3s ease;
+    will-change: d;
 }
 
 /* Per-card stroke colors + neon glow drops */

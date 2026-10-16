@@ -24,15 +24,39 @@ import {
 
 const MAX_BUF = 30;
 
+function normalizeBuffer(buf: number[], targetLen = 30): number[] {
+  if (!buf || buf.length === 0) return new Array(targetLen).fill(0);
+  if (buf.length >= targetLen) return buf.slice(buf.length - targetLen);
+  const pad = new Array(targetLen - buf.length).fill(buf[0]);
+  return [...pad, ...buf];
+}
+
 /**
  * Build smooth Catmull-Rom cubic bezier SVG path strings (line and area)
  * for a data buffer, matching the original live telemetry engine.
  */
-function buildSparkPaths(buf: number[], w = 100, h = 32): { line: string; area: string } {
+function buildSparkPaths(
+  buf: number[],
+  w = 100,
+  h = 32,
+  minRange = 10,
+  clampMin?: number,
+  clampMax?: number
+): { line: string; area: string } {
   if (!buf || buf.length < 2) return { line: '', area: '' };
 
-  const min = Math.min(...buf);
-  const max = Math.max(...buf);
+  let min = Math.min(...buf);
+  let max = Math.max(...buf);
+
+  if (clampMin !== undefined) min = Math.min(min, clampMin);
+  if (clampMax !== undefined) max = Math.max(max, clampMax);
+
+  const currentRange = max - min;
+  if (currentRange < minRange) {
+    const padRange = (minRange - currentRange) / 2;
+    min = clampMin !== undefined ? Math.max(clampMin, min - padRange) : min - padRange;
+    max = clampMax !== undefined ? Math.min(clampMax, max + padRange) : max + padRange;
+  }
   const range = max - min || 1;
   const pad = h * 0.08;
 
@@ -65,6 +89,81 @@ function buildSparkPaths(buf: number[], w = 100, h = 32): { line: string; area: 
 }
 
 /**
+ * Hook to smoothly animate SVG sparkline paths using requestAnimationFrame.
+ * Eliminates sudden jumps when new metric packets arrive.
+ */
+function useSmoothSparkline(
+  targetBuffer: number[],
+  w = 100,
+  h = 32,
+  options: {
+    duration?: number;
+    minRange?: number;
+    clampMin?: number;
+    clampMax?: number;
+  } = {}
+): { line: string; area: string } {
+  const {
+    duration = 550,
+    minRange = 10,
+    clampMin,
+    clampMax,
+  } = options;
+
+  const currentRef = useRef<number[]>([]);
+  const animRef = useRef<number | null>(null);
+  const [paths, setPaths] = useState<{ line: string; area: string }>(() => {
+    if (!targetBuffer || targetBuffer.length === 0) return { line: '', area: '' };
+    return buildSparkPaths(normalizeBuffer(targetBuffer, 30), w, h, minRange, clampMin, clampMax);
+  });
+
+  useEffect(() => {
+    if (!targetBuffer || targetBuffer.length === 0) return;
+    const target = normalizeBuffer(targetBuffer, 30);
+
+    if (currentRef.current.length !== target.length || typeof requestAnimationFrame === 'undefined') {
+      currentRef.current = [...target];
+      setPaths(buildSparkPaths(target, w, h, minRange, clampMin, clampMax));
+      return;
+    }
+
+    const start = [...currentRef.current];
+    const startTime = performance.now();
+
+    if (animRef.current) {
+      cancelAnimationFrame(animRef.current);
+    }
+
+    const animate = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(1, elapsed / duration);
+      // easeOutCubic
+      const ease = 1 - Math.pow(1 - progress, 3);
+
+      const interpolated = start.map((s, i) => s + (target[i] - s) * ease);
+      currentRef.current = interpolated;
+      setPaths(buildSparkPaths(interpolated, w, h, minRange, clampMin, clampMax));
+
+      if (progress < 1) {
+        animRef.current = requestAnimationFrame(animate);
+      } else {
+        animRef.current = null;
+      }
+    };
+
+    animRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animRef.current) {
+        cancelAnimationFrame(animRef.current);
+      }
+    };
+  }, [targetBuffer, w, h, duration, minRange, clampMin, clampMax]);
+
+  return paths;
+}
+
+/**
  * Build SVG mini sparkline path for per-core micro tiles
  */
 function buildCoreSparkPath(buf: number[], w = 80, h = 24): string {
@@ -73,11 +172,88 @@ function buildCoreSparkPath(buf: number[], w = 80, h = 24): string {
   let points = '';
   buf.forEach((v, idx) => {
     const x = (idx / (buf.length - 1)) * w;
-    const y = h - (v / maxV) * h;
+    const y = h - (Math.max(0, v) / maxV) * h;
     points += (idx === 0 ? 'M' : 'L') + x.toFixed(1) + ',' + y.toFixed(1) + ' ';
   });
   return points;
 }
+
+function useSmoothCoreSparkline(
+  targetBuffer: number[],
+  w = 80,
+  h = 24,
+  duration = 400
+): string {
+  const currentRef = useRef<number[]>([]);
+  const animRef = useRef<number | null>(null);
+  const [path, setPath] = useState<string>(() => {
+    if (!targetBuffer || targetBuffer.length === 0) return '';
+    return buildCoreSparkPath(normalizeBuffer(targetBuffer, 20), w, h);
+  });
+
+  useEffect(() => {
+    if (!targetBuffer || targetBuffer.length === 0) return;
+    const target = normalizeBuffer(targetBuffer, 20);
+
+    if (currentRef.current.length !== target.length || typeof requestAnimationFrame === 'undefined') {
+      currentRef.current = [...target];
+      setPath(buildCoreSparkPath(target, w, h));
+      return;
+    }
+
+    const start = [...currentRef.current];
+    const startTime = performance.now();
+
+    if (animRef.current) {
+      cancelAnimationFrame(animRef.current);
+    }
+
+    const animate = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(1, elapsed / duration);
+      const ease = 1 - Math.pow(1 - progress, 3);
+
+      const interpolated = start.map((s, i) => s + (target[i] - s) * ease);
+      currentRef.current = interpolated;
+      setPath(buildCoreSparkPath(interpolated, w, h));
+
+      if (progress < 1) {
+        animRef.current = requestAnimationFrame(animate);
+      } else {
+        animRef.current = null;
+      }
+    };
+
+    animRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animRef.current) {
+        cancelAnimationFrame(animRef.current);
+      }
+    };
+  }, [targetBuffer, w, h, duration]);
+
+  return path;
+}
+
+const CpuCoreMicroTile: React.FC<{
+  coreIndex: number;
+  usageVal: number;
+  buffer: number[];
+}> = React.memo(({ coreIndex, usageVal, buffer }) => {
+  const sparkPoints = useSmoothCoreSparkline(buffer, 80, 24, 400);
+  const cls = usageVal > 85 ? ' crit' : usageVal > 70 ? ' warn' : '';
+
+  return (
+    <div className="cpu-core">
+      <div className="cpu-core-label">CPU{coreIndex}</div>
+      <svg className="cpu-core-spark" viewBox="0 0 80 24" preserveAspectRatio="none">
+        <path d={sparkPoints} strokeWidth="1.5" fill="none" style={{ willChange: 'd' }} />
+      </svg>
+      <div className={`cpu-core-value${cls}`}>{usageVal.toFixed(1)}%</div>
+    </div>
+  );
+});
 
 export const OverviewPage: React.FC = () => {
   // Historical sparkline buffers
@@ -307,10 +483,23 @@ export const OverviewPage: React.FC = () => {
     ? 'On AC Power'
     : (tte ? formatBatteryTime(tte) : (ttf ? formatBatteryTime(ttf) : '—'));
 
-  // SVG Catmull-Rom paths for RAM and Network
-  const ramPaths = useMemo(() => buildSparkPaths(ramHistory, 100, 32), [ramHistory]);
-  const netUpPaths = useMemo(() => buildSparkPaths(netUpHistory, 100, 40), [netUpHistory]);
-  const netDownPaths = useMemo(() => buildSparkPaths(netDownHistory, 100, 40), [netDownHistory]);
+  // SVG Catmull-Rom paths for RAM and Network with 60fps rAF smooth interpolation
+  const ramPaths = useSmoothSparkline(ramHistory, 100, 32, {
+    duration: 650,
+    minRange: 15,
+    clampMin: 0,
+    clampMax: 100,
+  });
+  const netUpPaths = useSmoothSparkline(netUpHistory, 100, 40, {
+    duration: 550,
+    minRange: 10240,
+    clampMin: 0,
+  });
+  const netDownPaths = useSmoothSparkline(netDownHistory, 100, 40, {
+    duration: 550,
+    minRange: 10240,
+    clampMin: 0,
+  });
 
   // Donut chart math for Services
   const CIRC = 97.39; // 2 * PI * 15.5
@@ -426,17 +615,14 @@ export const OverviewPage: React.FC = () => {
                 const coreUsageObj = liveData?.cpu?.per_core_usage?.find((c) => c.core === i);
                 const usageVal = coreUsageObj?.usage ?? (i === 7 ? 28.6 : i === 2 ? 5.3 : (i === 4 || i === 5) ? 3.7 : 0);
                 const buf = coreBuffers[i] || [usageVal, usageVal];
-                const sparkPoints = buildCoreSparkPath(buf, 80, 24);
-                const cls = usageVal > 85 ? ' crit' : usageVal > 70 ? ' warn' : '';
 
                 return (
-                  <div key={i} className="cpu-core">
-                    <div className="cpu-core-label">CPU{i}</div>
-                    <svg className="cpu-core-spark" viewBox="0 0 80 24" preserveAspectRatio="none">
-                      <path d={sparkPoints} strokeWidth="1.5" fill="none" />
-                    </svg>
-                    <div className={`cpu-core-value${cls}`}>{usageVal.toFixed(1)}%</div>
-                  </div>
+                  <CpuCoreMicroTile
+                    key={i}
+                    coreIndex={i}
+                    usageVal={usageVal}
+                    buffer={buf}
+                  />
                 );
               })}
             </div>
