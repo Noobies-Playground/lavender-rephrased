@@ -634,8 +634,9 @@
                 // If it's epoch seconds or milliseconds, convert to local time.
                 var n = Number(tsStr);
                 if (!isNaN(n) && n > 0) {
-                    // Heuristic: 10 digits => seconds, 13 digits => ms.
-                    var ms = tsStr.length >= 13 ? n : (n * 1000);
+                    // Robust heuristic: decide by magnitude (epoch seconds vs ms).
+                    // seconds ~ 1e9, milliseconds ~ 1e12+
+                    var ms = (n >= 1e12) ? n : (n * 1000);
                     var d = new Date(ms);
                     if (isNaN(d.getTime())) return tsStr;
                     var hh = String(d.getHours()).padStart(2, '0');
