@@ -46,3 +46,20 @@ async def test_kill_process_admin_gate(auth_client, admin_client, mock_executor)
         res_admin = await admin_client.post("/api/system/processes/kill?pid=99999")
         assert res_admin.status_code == 200
         assert res_admin.json()["success"] is True
+
+
+@pytest.mark.asyncio
+async def test_get_system_logs(auth_client):
+    res = await auth_client.get("/api/system/logs?limit=5")
+    assert res.status_code == 200
+    data = res.json()
+    assert "logs" in data
+    assert "count" in data
+    assert isinstance(data["logs"], list)
+    if data["logs"]:
+        first = data["logs"][0]
+        assert "timestamp" in first
+        assert "message" in first
+        assert "service" in first
+        assert "level" in first
+

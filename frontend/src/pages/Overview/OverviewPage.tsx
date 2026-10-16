@@ -10,7 +10,7 @@ import {
   SystemLogItem,
   BatteryTelemetry,
 } from '../../api/types';
-import { formatRate, formatMemKb, formatBatteryTime } from '../../utils/formatters';
+import { formatRate, formatMemKb, formatBatteryTime, formatLogTime } from '../../utils/formatters';
 import {
   Cpu,
   Server,
@@ -973,10 +973,13 @@ export const OverviewPage: React.FC = () => {
                   const message = typeof log === 'object' && log !== null ? log.message || '' : String(log);
                   const level = typeof log === 'object' && log !== null ? log.level : 'info';
                   const dotColor = level === 'error' ? 'var(--red)' : level === 'warning' ? 'var(--yellow)' : 'var(--green)';
+                  const { time: timeDisplay, full: timeTooltip } = formatLogTime(timestamp);
 
                   return (
                     <div key={idx} className="log-entry">
-                      <span className="log-time">{timestamp || '•'}</span>
+                      <span className="log-time" title={timeTooltip || undefined}>
+                        {timeDisplay}
+                      </span>
                       <span className="log-dot" style={{ background: dotColor }} />
                       <span className="log-msg">
                         {service ? `${service}: ` : ''}{message}

@@ -190,4 +190,46 @@ describe('OverviewPage', () => {
     expect(screen.getByText(/lavender:/i)).toBeInTheDocument();
     expect(screen.getByText(/23:59:01/i)).toBeInTheDocument();
   });
+
+  it('formats ISO log timestamps into readable local client time', async () => {
+    (useSSE as ReturnType<typeof vi.fn>).mockReturnValue({
+      data: null,
+      status: 'connected',
+    });
+
+    const now = new Date();
+    const isoString = now.toISOString();
+    const expectedTime = now.toLocaleTimeString(undefined, {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+
+    (api.get as ReturnType<typeof vi.fn>).mockImplementation((url: string) => {
+      if (url.includes('/logs')) {
+        return Promise.resolve({
+          logs: [
+            {
+              timestamp: isoString,
+              message: 'Daemon sync completed',
+              service: 'systemd',
+              level: 'info',
+            },
+          ],
+        });
+      }
+      return Promise.resolve({});
+    });
+
+    render(
+      <MemoryRouter>
+        <OverviewPage />
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByText(/Daemon sync completed/i)).toBeInTheDocument();
+    expect(screen.getByText(/systemd:/i)).toBeInTheDocument();
+    expect(screen.getByText(expectedTime)).toBeInTheDocument();
+  });
 });
+
