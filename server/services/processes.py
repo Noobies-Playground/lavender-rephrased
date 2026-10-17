@@ -145,10 +145,19 @@ def get_system_load() -> dict:
     try:
         with open("/proc/loadavg", "r") as f:
             parts = f.read().strip().split()
+            l1 = float(parts[0])
+            l5 = float(parts[1])
+            l15 = float(parts[2])
             load_avg = {
-                "1min": float(parts[0]),
-                "5min": float(parts[1]),
-                "15min": float(parts[2]),
+                "1min": l1,
+                "5min": l5,
+                "15min": l15,
+                "1m": l1,
+                "5m": l5,
+                "15m": l15,
+                "load1": l1,
+                "load5": l5,
+                "load15": l15,
                 "running": parts[3].split("/")[0],
                 "total": parts[3].split("/")[1],
             }

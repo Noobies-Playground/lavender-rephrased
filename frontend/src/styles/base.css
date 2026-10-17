@@ -6,8 +6,13 @@
   padding: 0;
 }
 
+:root {
+  color-scheme: dark;
+}
+
 html,
 body {
+  color-scheme: dark;
   height: 100%;
   width: 100%;
   background-color: var(--bg-base);
@@ -85,6 +90,14 @@ input, button, select, textarea {
   outline: none;
   border: none;
   background: none;
+  color-scheme: dark;
+}
+
+select,
+option {
+  color-scheme: dark;
+  background-color: #0c1a2e;
+  color: #f1f5f9;
 }
 
 button {
