@@ -87,8 +87,9 @@ export const PackagesPage: React.FC = () => {
     if (!pendingAction) return;
     setActionLoading(true);
     try {
+      const reqOptions = { timeoutMs: 600_000 };
       if (pendingAction.type === 'upgrade-all') {
-        const res = await api.post<{ success: boolean; output?: string }>('/api/packages/upgrade');
+        const res = await api.post<{ success: boolean; output?: string }>('/api/packages/upgrade', undefined, reqOptions);
         if (res.success) {
           addToast('System packages successfully upgraded', 'success');
           setPendingAction(null);
@@ -96,7 +97,9 @@ export const PackagesPage: React.FC = () => {
         }
       } else if (pendingAction.type === 'upgrade' && pendingAction.package) {
         const res = await api.post<{ success: boolean; output?: string }>(
-          `/api/packages/upgrade?package=${encodeURIComponent(pendingAction.package)}`
+          `/api/packages/upgrade?package=${encodeURIComponent(pendingAction.package)}`,
+          undefined,
+          reqOptions
         );
         if (res.success) {
           addToast(`Package ${pendingAction.package} upgraded`, 'success');
@@ -105,7 +108,9 @@ export const PackagesPage: React.FC = () => {
         }
       } else if (pendingAction.type === 'install' && pendingAction.package) {
         const res = await api.post<{ success: boolean; output?: string }>(
-          `/api/packages/install?package=${encodeURIComponent(pendingAction.package)}`
+          `/api/packages/install?package=${encodeURIComponent(pendingAction.package)}`,
+          undefined,
+          reqOptions
         );
         if (res.success) {
           addToast(`Package ${pendingAction.package} installed`, 'success');
@@ -114,7 +119,9 @@ export const PackagesPage: React.FC = () => {
         }
       } else if (pendingAction.type === 'remove' && pendingAction.package) {
         const res = await api.post<{ success: boolean; output?: string }>(
-          `/api/packages/remove?package=${encodeURIComponent(pendingAction.package)}`
+          `/api/packages/remove?package=${encodeURIComponent(pendingAction.package)}`,
+          undefined,
+          reqOptions
         );
         if (res.success) {
           addToast(`Package ${pendingAction.package} removed`, 'success');

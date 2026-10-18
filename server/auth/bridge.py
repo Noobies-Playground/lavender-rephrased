@@ -146,6 +146,7 @@ async def authenticate_user(username: str, password: str) -> dict:
 
 async def run_command_async(cmd: list[str] | str, timeout: int = 30) -> tuple[int, str, str]:
     """Execute a local command asynchronously."""
+    proc = None
     try:
         if isinstance(cmd, str):
             proc = await asyncio.create_subprocess_shell(
@@ -161,13 +162,21 @@ async def run_command_async(cmd: list[str] | str, timeout: int = 30) -> tuple[in
             )
         stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=timeout)
         return proc.returncode or 0, stdout.decode().strip(), stderr.decode().strip()
-    except asyncio.TimeoutExpired:
-        try:
-            proc.kill()
-        except Exception:
-            pass
+    except (asyncio.TimeoutError, TimeoutError):
+        if proc:
+            try:
+                proc.kill()
+                await proc.wait()
+            except Exception:
+                pass
         return -1, "", "Command timed out"
     except Exception as e:
+        if proc:
+            try:
+                proc.kill()
+                await proc.wait()
+            except Exception:
+                pass
         return -1, "", str(e)
 
 
@@ -179,6 +188,7 @@ async def run_user_service_async(uid: int, cmd: list[str], timeout: int = 30) ->
     env = os.environ.copy()
     env["XDG_RUNTIME_DIR"] = f"/run/user/{uid}"
     env["DBUS_SESSION_BUS_ADDRESS"] = f"unix:path=/run/user/{uid}/systemd/private"
+    proc = None
     try:
         proc = await asyncio.create_subprocess_exec(
             cmd[0], *cmd[1:],
@@ -188,13 +198,21 @@ async def run_user_service_async(uid: int, cmd: list[str], timeout: int = 30) ->
         )
         stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=timeout)
         return proc.returncode or 0, stdout.decode().strip(), stderr.decode().strip()
-    except asyncio.TimeoutExpired:
-        try:
-            proc.kill()
-        except Exception:
-            pass
+    except (asyncio.TimeoutError, TimeoutError):
+        if proc:
+            try:
+                proc.kill()
+                await proc.wait()
+            except Exception:
+                pass
         return -1, "", "Command timed out"
     except Exception as e:
+        if proc:
+            try:
+                proc.kill()
+                await proc.wait()
+            except Exception:
+                pass
         return -1, "", str(e)
 
 
@@ -239,6 +257,7 @@ async def run_sudo_async(
         full_cmd = ["sudo", "-n"] + cmd
         stdin_input = None
 
+    proc = None
     try:
         proc = await asyncio.create_subprocess_exec(
             full_cmd[0], *full_cmd[1:],
@@ -251,13 +270,21 @@ async def run_sudo_async(
             timeout=timeout,
         )
         return proc.returncode or 0, stdout.decode().strip(), stderr.decode().strip()
-    except asyncio.TimeoutExpired:
-        try:
-            proc.kill()
-        except Exception:
-            pass
+    except (asyncio.TimeoutError, TimeoutError):
+        if proc:
+            try:
+                proc.kill()
+                await proc.wait()
+            except Exception:
+                pass
         return -1, "", "Command timed out"
     except Exception as e:
+        if proc:
+            try:
+                proc.kill()
+                await proc.wait()
+            except Exception:
+                pass
         return -1, "", str(e)
 
 

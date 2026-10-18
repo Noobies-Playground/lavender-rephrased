@@ -85,7 +85,11 @@ describe('PackagesPage', () => {
     });
 
     await waitFor(() => {
-      expect(api.post).toHaveBeenCalledWith('/api/packages/upgrade');
+      expect(api.post).toHaveBeenCalledWith(
+        '/api/packages/upgrade',
+        undefined,
+        expect.objectContaining({ timeoutMs: 600_000 })
+      );
     });
   });
 

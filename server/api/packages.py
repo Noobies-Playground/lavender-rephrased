@@ -57,7 +57,7 @@ async def api_upgrade_packages(
     cmd = mgr.get_upgrade_command(package)
     if not cmd:
         raise HTTPException(status_code=400, detail="No upgrade command available for this system")
-    code, out, err = await run_sudo_async(cmd, password=None)
+    code, out, err = await run_sudo_async(cmd, password=None, timeout=600)
     invalidate_packages_cache()
     if code != 0:
         raise HTTPException(status_code=500, detail=err or out or "Upgrade failed")
@@ -75,7 +75,7 @@ async def api_install_package(
     cmd = mgr.get_install_command(package)
     if not cmd:
         raise HTTPException(status_code=400, detail="No install command available for this system")
-    code, out, err = await run_sudo_async(cmd, password=None)
+    code, out, err = await run_sudo_async(cmd, password=None, timeout=600)
     invalidate_packages_cache()
     if code != 0:
         raise HTTPException(status_code=500, detail=err or out or f"Failed to install {package}")
@@ -93,7 +93,7 @@ async def api_remove_package(
     cmd = mgr.get_remove_command(package)
     if not cmd:
         raise HTTPException(status_code=400, detail="No remove command available for this distribution")
-    code, out, err = await run_sudo_async(cmd, password=None)
+    code, out, err = await run_sudo_async(cmd, password=None, timeout=600)
     invalidate_packages_cache()
     if code != 0:
         raise HTTPException(status_code=500, detail=err or out or f"Failed to remove {package}")

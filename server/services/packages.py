@@ -302,15 +302,50 @@ class AptManager(BasePackageManager):
         }
 
     def get_upgrade_command(self, package: Optional[str] = None) -> List[str]:
+        base = [
+            "env",
+            "DEBIAN_FRONTEND=noninteractive",
+            "NEEDRESTART_MODE=a",
+            "apt-get",
+            "-y",
+            "-o",
+            "Dpkg::Options::=--force-confdef",
+            "-o",
+            "Dpkg::Options::=--force-confold",
+        ]
         if package:
-            return ["apt-get", "install", "--only-upgrade", "-y", package]
-        return ["apt-get", "upgrade", "-y"]
+            return base + ["install", "--only-upgrade", package]
+        return base + ["upgrade", "--with-new-pkgs"]
 
     def get_install_command(self, package: str) -> List[str]:
-        return ["apt-get", "install", "-y", package]
+        return [
+            "env",
+            "DEBIAN_FRONTEND=noninteractive",
+            "NEEDRESTART_MODE=a",
+            "apt-get",
+            "-y",
+            "-o",
+            "Dpkg::Options::=--force-confdef",
+            "-o",
+            "Dpkg::Options::=--force-confold",
+            "install",
+            package,
+        ]
 
     def get_remove_command(self, package: str) -> List[str]:
-        return ["apt-get", "remove", "-y", package]
+        return [
+            "env",
+            "DEBIAN_FRONTEND=noninteractive",
+            "NEEDRESTART_MODE=a",
+            "apt-get",
+            "-y",
+            "-o",
+            "Dpkg::Options::=--force-confdef",
+            "-o",
+            "Dpkg::Options::=--force-confold",
+            "remove",
+            package,
+        ]
 
 
 class PacmanManager(BasePackageManager):
