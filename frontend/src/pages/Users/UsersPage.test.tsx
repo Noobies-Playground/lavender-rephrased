@@ -13,6 +13,15 @@ vi.mock('../../api/client', () => ({
   },
 }));
 
+vi.mock('../../context/AuthContext', () => ({
+  useAuth: () => ({
+    session: { username: 'rahat', is_admin: true },
+    isElevated: true,
+    openElevationModal: vi.fn().mockResolvedValue(true),
+    dropElevation: vi.fn(),
+  }),
+}));
+
 describe('UsersPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -28,6 +37,13 @@ describe('UsersPage', () => {
         home: '/home/rahat',
         groups: ['wheel', 'docker', 'audio'],
         is_human: true,
+        home_storage: {
+          total_gb: 50.0,
+          used_gb: 15.0,
+          free_gb: 35.0,
+          percent_used: 30.0,
+        },
+        ssh_keys_count: 1,
       },
       {
         username: 'alice',
@@ -37,31 +53,55 @@ describe('UsersPage', () => {
         home: '/home/alice',
         groups: ['users'],
         is_human: true,
+        ssh_keys_count: 0,
       },
     ],
-    system_users: [],
-    groups_categorized: { admin: ['wheel', 'sudo'] },
+    system_users: [
+      {
+        username: 'daemon',
+        uid: 1,
+        gid: 1,
+        shell: '/usr/sbin/nologin',
+        home: '/usr/sbin',
+        groups: ['daemon'],
+      },
+    ],
+    groups_categorized: [
+      {
+        name: 'wheel',
+        gid: 10,
+        members: ['rahat'],
+        category: 'Privileged',
+        description: 'Administrative elevation privileges',
+        member_count: 1,
+      },
+      {
+        name: 'audio',
+        gid: 29,
+        members: ['rahat'],
+        category: 'Hardware',
+        description: 'Audio playback and recording',
+        member_count: 1,
+      },
+    ],
     active_sessions: [
       { user: 'rahat', tty: 'pts/0', from: '192.168.1.100', login_time: '14:20:00', idle: '12s' },
     ],
-    login_history: [],
-    security: {},
+    login_history: [
+      { user: 'rahat', tty: 'pts/0', host: '192.168.1.100', time: 'Mon 14:20' },
+    ],
+    security: {
+      elevation_engine: 'sudo',
+      visudo_ok: true,
+      sshd_active: true,
+      root_ssh_login: 'prohibit-password',
+      password_auth: 'yes',
+    },
     metrics: {
       active_sessions_count: 1,
       human_users_count: 2,
-      total_ssh_keys: 3,
+      total_ssh_keys: 1,
       is_elevated: true,
-    },
-    current_user: {
-      username: 'rahat',
-      uid: 1000,
-      gid: 1000,
-      home: '/home/rahat',
-      shell: '/bin/bash',
-      groups: ['wheel'],
-      is_admin: true,
-      can_elevate: true,
-      admin_remaining_seconds: 600,
     },
   };
 
@@ -81,8 +121,8 @@ describe('UsersPage', () => {
     expect(screen.getByText('alice')).toBeInTheDocument();
     expect(screen.getByText('/home/rahat')).toBeInTheDocument();
     expect(screen.getByText('/home/alice')).toBeInTheDocument();
-    expect(screen.getByText('pts/0')).toBeInTheDocument();
-    expect(screen.getByText('192.168.1.100')).toBeInTheDocument();
+    expect(screen.getByText(/pts\/0/i)).toBeInTheDocument();
+    expect(screen.getByText(/192\.168\.1\.100/i)).toBeInTheDocument();
   });
 
   it('terminates active session via confirmation modal', async () => {
@@ -102,7 +142,13 @@ describe('UsersPage', () => {
 
     await screen.findAllByText('rahat');
 
-    const disconnectBtn = screen.getByRole('button', { name: /Disconnect/i });
+    // Switch to active sessions tab
+    const sessionsTab = screen.getByRole('button', { name: /Active Sessions/i });
+    act(() => {
+      fireEvent.click(sessionsTab);
+    });
+
+    const disconnectBtn = await screen.findByRole('button', { name: /Disconnect/i });
     act(() => {
       fireEvent.click(disconnectBtn);
     });
@@ -146,12 +192,67 @@ describe('UsersPage', () => {
 
     await screen.findAllByText('rahat');
 
-    const sshBtns = screen.getAllByRole('button', { name: /SSH Keys/i });
+    const sshBtn = screen.getByRole('button', { name: /SSH Keys \(1\)/i });
     act(() => {
-      fireEvent.click(sshBtns[0]);
+      fireEvent.click(sshBtn);
     });
 
     expect(await screen.findByText(/Authorized SSH Keys: rahat/i)).toBeInTheDocument();
     expect(screen.getByText(/rahul@laptop/i)).toBeInTheDocument();
+  });
+
+  it('switches tabs to Groups & Hardware and filters by category', async () => {
+    (api.get as ReturnType<typeof vi.fn>).mockResolvedValue(mockUsersData);
+
+    render(
+      <ToastProvider>
+        <MemoryRouter>
+          <UsersPage />
+        </MemoryRouter>
+      </ToastProvider>
+    );
+
+    await screen.findAllByText('rahat');
+
+    const groupsTab = screen.getByRole('button', { name: /Groups & Hardware/i });
+    act(() => {
+      fireEvent.click(groupsTab);
+    });
+
+    expect(await screen.findByText('Administrative elevation privileges')).toBeInTheDocument();
+    expect(screen.getByText('Audio playback and recording')).toBeInTheDocument();
+
+    // Filter by Privileged pill
+    const privPill = screen.getByRole('button', { name: /Privileged/i });
+    act(() => {
+      fireEvent.click(privPill);
+    });
+
+    expect(screen.getByText('wheel')).toBeInTheDocument();
+    expect(screen.queryByText('audio')).not.toBeInTheDocument();
+  });
+
+  it('switches to Security & SSH Keys tab and displays posture cards', async () => {
+    (api.get as ReturnType<typeof vi.fn>).mockResolvedValue(mockUsersData);
+
+    render(
+      <ToastProvider>
+        <MemoryRouter>
+          <UsersPage />
+        </MemoryRouter>
+      </ToastProvider>
+    );
+
+    await screen.findAllByText('rahat');
+
+    const securityTab = screen.getByRole('button', { name: /Security & SSH Keys/i });
+    act(() => {
+      fireEvent.click(securityTab);
+    });
+
+    expect(await screen.findByText(/Privilege Elevation Engine/i)).toBeInTheDocument();
+    expect(screen.getByText(/SSH Daemon Posture/i)).toBeInTheDocument();
+    expect(screen.getByText(/SSH Authorized Keys Hub/i)).toBeInTheDocument();
+    expect(screen.getByText(/Syntax OK/i)).toBeInTheDocument();
   });
 });
