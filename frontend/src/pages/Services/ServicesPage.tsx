@@ -512,7 +512,6 @@ export const ServicesPage: React.FC = () => {
         <div className="modal-overlay" onClick={() => setViewingService(null)}>
           <div
             className="modal-content service-modal-wrap"
-            style={{ maxWidth: '780px', width: '92%' }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -743,8 +742,7 @@ export const ServicesPage: React.FC = () => {
       {selectedLogsUnit && (
         <div className="modal-overlay" onClick={() => setSelectedLogsUnit(null)}>
           <div
-            className="modal-content service-modal-wrap"
-            style={{ maxWidth: '800px', width: '92%' }}
+            className="modal-content service-modal-wrap service-logs-modal"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="svc-modal-head">

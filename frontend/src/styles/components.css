@@ -618,9 +618,15 @@ select option:checked {
 .service-modal-wrap {
   display: flex !important;
   flex-direction: column !important;
+  width: 92% !important;
+  max-width: 780px !important;
   max-height: 88vh !important;
   padding: 0 !important;
   overflow: hidden !important;
+}
+
+.service-modal-wrap.service-logs-modal {
+  max-width: 840px !important;
 }
 
 .svc-modal-head {
@@ -632,6 +638,7 @@ select option:checked {
   background: linear-gradient(180deg, rgba(16, 29, 54, 0.8) 0%, rgba(10, 20, 38, 0.6) 100%);
   border-bottom: 1px solid var(--border);
   position: relative;
+  flex-shrink: 0;
 }
 
 .svc-modal-head::before {
@@ -687,7 +694,8 @@ select option:checked {
   color: #f8fafc;
   letter-spacing: -0.01em;
   margin: 0;
-  word-break: break-all;
+  word-break: normal;
+  overflow-wrap: anywhere;
 }
 
 .svc-copy-chip {
@@ -791,6 +799,8 @@ select option:checked {
 }
 
 .svc-modal-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   padding: 18px 24px;
   display: flex;
@@ -973,6 +983,7 @@ select option:checked {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-shrink: 0;
 }
 
 .svc-term-dot {
@@ -996,6 +1007,14 @@ select option:checked {
   display: flex;
   align-items: center;
   gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.svc-term-cmd span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .svc-term-copy-btn {
@@ -1010,6 +1029,7 @@ select option:checked {
   align-items: center;
   gap: 4px;
   transition: all 0.15s ease;
+  flex-shrink: 0;
 }
 
 .svc-term-copy-btn:hover {
@@ -1028,7 +1048,8 @@ select option:checked {
   overflow-y: auto;
   color: #94a3b8;
   white-space: pre-wrap;
-  word-break: break-all;
+  word-break: normal;
+  overflow-wrap: anywhere;
   background: #020612;
 }
 
@@ -1053,6 +1074,7 @@ select option:checked {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .svc-foot-left {
@@ -1581,6 +1603,211 @@ select option:checked {
     align-items: center !important;
     padding: 12px 14px !important;
     text-align: center !important;
+  }
+
+  /* ===== Service Details & Logs Modal Phone Layout ===== */
+  .modal-overlay {
+    padding: 8px 6px !important;
+  }
+
+  .service-modal-wrap {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 94vh !important;
+    border-radius: 14px !important;
+  }
+
+  .svc-modal-head {
+    padding: 12px 14px 10px !important;
+    gap: 10px !important;
+  }
+
+  .svc-head-left {
+    gap: 10px !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+  }
+
+  .svc-icon-box {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    border-radius: 10px !important;
+  }
+
+  .svc-icon-box svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .svc-head-title-wrap {
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+    gap: 5px !important;
+  }
+
+  .svc-title-row {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 6px !important;
+  }
+
+  .svc-modal-title {
+    font-size: 14px !important;
+    line-height: 1.35 !important;
+    width: 100% !important;
+    flex: 1 1 100% !important;
+    word-break: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .svc-copy-chip {
+    padding: 2px 6px !important;
+    font-size: 10.5px !important;
+  }
+
+  .svc-badge-pill {
+    font-size: 10px !important;
+    padding: 2px 7px !important;
+  }
+
+  .svc-desc {
+    font-size: 11.5px !important;
+    line-height: 1.35 !important;
+    color: var(--text-muted) !important;
+  }
+
+  .svc-modal-close {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    font-size: 12px !important;
+    border-radius: 6px !important;
+  }
+
+  .svc-modal-scroll {
+    padding: 12px 12px !important;
+    gap: 12px !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .svc-metrics-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .svc-metric-card {
+    padding: 9px 10px !important;
+    border-radius: 10px !important;
+    gap: 2px !important;
+  }
+
+  .svc-metric-top {
+    font-size: 10px !important;
+  }
+
+  .svc-metric-top span {
+    font-size: 10px !important;
+  }
+
+  .svc-metric-val {
+    font-size: 13.5px !important;
+    margin: 1px 0 !important;
+  }
+
+  .svc-metric-sub {
+    font-size: 10px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .svc-term-box {
+    border-radius: 10px !important;
+  }
+
+  .svc-term-bar {
+    padding: 6px 10px !important;
+    gap: 8px !important;
+  }
+
+  .svc-term-cmd {
+    font-size: 10.5px !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+  }
+
+  .svc-term-copy-btn {
+    padding: 2px 6px !important;
+    font-size: 10.5px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .svc-term-body {
+    padding: 10px 12px !important;
+    font-size: 11px !important;
+    line-height: 1.5 !important;
+    max-height: 220px !important;
+    white-space: pre-wrap !important;
+    word-break: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .svc-modal-foot {
+    flex-direction: column !important;
+    padding: 10px 12px !important;
+    gap: 8px !important;
+  }
+
+  .svc-foot-left {
+    display: flex !important;
+    width: 100% !important;
+    gap: 6px !important;
+  }
+
+  .svc-foot-left > .svc-btn-foot {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    justify-content: center !important;
+    padding: 8px 4px !important;
+    font-size: 11.5px !important;
+    min-height: 38px !important;
+    border-radius: 8px !important;
+  }
+
+  .svc-foot-left > .svc-btn-foot span {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .svc-foot-right {
+    width: 100% !important;
+    display: flex !important;
+  }
+
+  .svc-foot-right > .svc-btn-foot {
+    width: 100% !important;
+    justify-content: center !important;
+    min-height: 36px !important;
+    font-size: 12px !important;
+    padding: 8px 12px !important;
+  }
+
+  .svc-kbd-hint {
+    display: none !important;
+  }
+
+  .service-logs-modal .svc-modal-foot {
+    flex-direction: row !important;
+    gap: 8px !important;
+  }
+
+  .service-logs-modal .svc-foot-left,
+  .service-logs-modal .svc-foot-right {
+    flex: 1 1 0 !important;
+    width: auto !important;
   }
 }
 
