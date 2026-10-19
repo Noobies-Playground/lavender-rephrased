@@ -20,3 +20,29 @@ class UnmountResponse(BaseModel):
     mount_point: Optional[str] = None
     message: Optional[str] = None
     error: Optional[str] = None
+
+
+class SaveFileRequest(BaseModel):
+    path: str
+    content: str
+
+
+class CreateDirRequest(BaseModel):
+    path: str
+    name: str
+
+
+class CreateFileRequest(BaseModel):
+    path: str
+    name: str
+    content: Optional[str] = ""
+
+
+class RenameRequest(BaseModel):
+    old_path: str
+    new_name: str
+
+
+class DeleteFilesRequest(BaseModel):
+    paths: List[str]
+

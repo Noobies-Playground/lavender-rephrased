@@ -108,7 +108,13 @@ export const api = {
     apiFetch<T>(url, {
       ...options,
       method: 'POST',
-      body: body ? JSON.stringify(body) : undefined,
+      body: body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,
+    }),
+  postForm: <T>(url: string, formData: FormData, options?: RequestOptions) =>
+    apiFetch<T>(url, {
+      ...options,
+      method: 'POST',
+      body: formData,
     }),
   delete: <T>(url: string, options?: RequestOptions) =>
     apiFetch<T>(url, { ...options, method: 'DELETE' }),
