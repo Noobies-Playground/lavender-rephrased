@@ -230,102 +230,99 @@ export const ServicesPage: React.FC = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* ── Toolbar ────────────────────────────────────────────── */}
-      <div className="toolbar" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center' }}>
-        <div style={{ position: 'relative', flex: '1 1 240px', maxWidth: '380px' }}>
+      <div className="toolbar services-toolbar">
+        <div className="services-search-wrap">
           <Search
             size={16}
-            style={{
-              position: 'absolute',
-              left: '12px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: 'var(--text-muted)',
-            }}
+            className="services-search-icon"
           />
           <input
             type="search"
-            className="form-input"
+            className="form-input services-search-input"
             placeholder="Search services (e.g. ssh, lavender)..."
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
               setCurrentPage(1);
             }}
-            style={{ paddingLeft: '36px' }}
           />
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <label className="form-label" style={{ margin: 0, fontSize: '0.82rem' }}>
-            Scope:
-          </label>
-          <select
-            className="form-select"
-            value={scopeFilter}
-            onChange={(e) => {
-              setScopeFilter(e.target.value as 'all' | 'user' | 'system');
-              setCurrentPage(1);
-            }}
-            style={{ width: 'auto' }}
-          >
-            <option value="all">All Services</option>
-            <option value="user">User Only</option>
-            <option value="system">System Only</option>
-          </select>
-        </div>
+        <div className="services-filter-grid">
+          <div className="services-filter-item">
+            <label htmlFor="svc-scope-select" className="services-filter-label">
+              Scope:
+            </label>
+            <select
+              id="svc-scope-select"
+              className="form-select services-filter-select"
+              value={scopeFilter}
+              onChange={(e) => {
+                setScopeFilter(e.target.value as 'all' | 'user' | 'system');
+                setCurrentPage(1);
+              }}
+            >
+              <option value="all">All Services</option>
+              <option value="user">User Only</option>
+              <option value="system">System Only</option>
+            </select>
+          </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <label className="form-label" style={{ margin: 0, fontSize: '0.82rem' }}>
-            State:
-          </label>
-          <select
-            className="form-select"
-            value={stateFilter}
-            onChange={(e) => {
-              setStateFilter(e.target.value);
-              setCurrentPage(1);
-            }}
-            style={{ width: 'auto' }}
-          >
-            <option value="">All States</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="failed">Failed</option>
-          </select>
-        </div>
+          <div className="services-filter-item">
+            <label htmlFor="svc-state-select" className="services-filter-label">
+              State:
+            </label>
+            <select
+              id="svc-state-select"
+              className="form-select services-filter-select"
+              value={stateFilter}
+              onChange={(e) => {
+                setStateFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+            >
+              <option value="">All States</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="failed">Failed</option>
+            </select>
+          </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <label className="form-label" style={{ margin: 0, fontSize: '0.82rem' }}>
-            Show:
-          </label>
-          <select
-            className="form-select"
-            value={pageSize}
-            onChange={(e) => {
-              setPageSize(Number(e.target.value));
-              setCurrentPage(1);
-            }}
-            style={{ width: 'auto' }}
-          >
-            <option value={25}>25</option>
-            <option value={50}>50</option>
-            <option value={100}>100</option>
-          </select>
-        </div>
+          <div className="services-filter-item">
+            <label htmlFor="svc-show-select" className="services-filter-label">
+              Show:
+            </label>
+            <select
+              id="svc-show-select"
+              className="form-select services-filter-select"
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+            >
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+          </div>
 
-        <button
-          className="btn btn-secondary"
-          onClick={() => loadServices(true)}
-          disabled={loading || refreshing}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-        >
-          <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
-          <span>Refresh</span>
-        </button>
+          <div className="services-filter-item services-filter-btn-item">
+            <button
+              type="button"
+              className="btn btn-secondary services-refresh-btn"
+              onClick={() => loadServices(true)}
+              disabled={loading || refreshing}
+            >
+              <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
+              <span>Refresh</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* ── Services Table Card ────────────────────────────────── */}
-      <div className="card">
+      <div className="card services-card">
         <div
           className="card-header"
           style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
@@ -343,16 +340,16 @@ export const ServicesPage: React.FC = () => {
         </div>
 
         <div className="card-body" style={{ padding: 0 }}>
-          <div className="table-scroll-wrap">
-            <table className="table table-sticky">
+          <div className="table-scroll-wrap services-table-wrap">
+            <table className="table table-sticky services-table">
               <thead>
                 <tr>
-                  <th>NAME</th>
-                  <th>SCOPE</th>
-                  <th>LOAD</th>
-                  <th>ACTIVE</th>
-                  <th>SUB</th>
-                  <th style={{ textAlign: 'right' }}>ACTIONS</th>
+                  <th className="svc-col-name">NAME</th>
+                  <th className="svc-col-scope">SCOPE</th>
+                  <th className="svc-col-load">LOAD</th>
+                  <th className="svc-col-active">ACTIVE</th>
+                  <th className="svc-col-sub">SUB</th>
+                  <th className="svc-col-actions" style={{ textAlign: 'right' }}>ACTIONS</th>
                 </tr>
               </thead>
               <tbody>
@@ -380,64 +377,79 @@ export const ServicesPage: React.FC = () => {
                       active === 'active' ? 'status-active' : active === 'failed' ? 'status-failed' : 'status-inactive';
 
                     return (
-                      <tr key={name}>
-                        <td>
-                          <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <span className="mono" style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
-                              {name}
-                            </span>
+                      <tr
+                        key={name}
+                        className="service-row"
+                        onClick={() => handleOpenDetail(name, scope)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleOpenDetail(name, scope);
+                          }
+                        }}
+                        tabIndex={0}
+                        role="button"
+                        title={`Click to view details for ${name}`}
+                      >
+                        <td className="svc-col-name">
+                          <div className="svc-name-group">
+                            <span className="mono svc-name">{name}</span>
                             {s.description && (
-                              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                                {s.description}
-                              </span>
+                              <span className="svc-desc">{s.description}</span>
                             )}
                           </div>
                         </td>
-                        <td>
+                        <td className="svc-col-scope">
                           <span className={`badge ${scope}`}>
                             {scope.toUpperCase()}
                           </span>
                         </td>
-                        <td>
+                        <td className="svc-col-load">
                           <span className="mono" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
                             {load}
                           </span>
                         </td>
-                        <td>
-                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        <td className="svc-col-active">
+                          <div className="svc-status-pill">
                             <span className={`status-indicator ${activeClass}`} />
-                            <span style={{ textTransform: 'lowercase', color: 'var(--text-primary)' }}>
-                              {active}
-                            </span>
+                            <span className="svc-active-label">{active}</span>
                           </div>
+                          <span className={`badge ${scope} svc-mobile-badge`}>
+                            {scope.toUpperCase()}
+                          </span>
+                          {sub && sub !== '—' && (
+                            <span className="svc-sub-badge mono svc-mobile-sub">
+                              {sub}
+                            </span>
+                          )}
                         </td>
-                        <td>
+                        <td className="svc-col-sub">
                           <span className="mono" style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
                             {sub}
                           </span>
                         </td>
-                        <td style={{ textAlign: 'right' }}>
-                          <div style={{ display: 'inline-flex', gap: '6px', justifyContent: 'flex-end' }}>
+                        <td className="svc-col-actions" style={{ textAlign: 'right' }}>
+                          <div className="svc-actions-group">
                             <button
-                              className="btn btn-xs btn-secondary"
-                              onClick={() => handleOpenDetail(name, scope)}
-                            >
-                              View
-                            </button>
-                            <button
-                              className="btn btn-xs btn-info"
-                              onClick={() => handleOpenLogs(name)}
+                              type="button"
+                              className="btn btn-xs btn-info svc-logs-btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenLogs(name);
+                              }}
                             >
                               Logs
                             </button>
                             {/* Hidden or quick action hook for test suite compatibility */}
                             <button
+                              type="button"
                               className="btn btn-xs btn-ghost"
                               title="Restart Service"
                               style={{ display: 'none' }}
-                              onClick={() =>
-                                setPendingAction({ unit: name, action: 'restart', isUser })
-                              }
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setPendingAction({ unit: name, action: 'restart', isUser });
+                              }}
                             >
                               <RotateCw size={12} />
                             </button>
@@ -453,7 +465,7 @@ export const ServicesPage: React.FC = () => {
 
           {/* Pagination Footer */}
           <div
-            className="pagination-bar"
+            className="pagination-bar services-pagination-bar"
             style={{
               display: 'flex',
               justifyContent: 'space-between',
@@ -472,6 +484,7 @@ export const ServicesPage: React.FC = () => {
             </span>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
               <button
+                type="button"
                 className="btn btn-xs btn-secondary"
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage <= 1}
@@ -482,6 +495,7 @@ export const ServicesPage: React.FC = () => {
                 Page {currentPage} of {totalPages}
               </span>
               <button
+                type="button"
                 className="btn btn-xs btn-secondary"
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage >= totalPages}
@@ -559,7 +573,11 @@ export const ServicesPage: React.FC = () => {
                       <div className="svc-metric-val">
                         <span className={`svc-state-pill ${serviceDetail.active ? 'active' : serviceDetail.active_state === 'failed' ? 'failed' : 'inactive'}`}>
                           <span className={`svc-dot ${serviceDetail.active ? 'active' : serviceDetail.active_state === 'failed' ? 'failed' : 'inactive'}`} />
-                          {serviceDetail.active_state.charAt(0).toUpperCase() + serviceDetail.active_state.slice(1)}
+                          {serviceDetail.active_state
+                            ? serviceDetail.active_state.charAt(0).toUpperCase() + serviceDetail.active_state.slice(1)
+                            : serviceDetail.active
+                            ? 'Active'
+                            : 'Inactive'}
                         </span>
                       </div>
                       <div className="svc-metric-sub">

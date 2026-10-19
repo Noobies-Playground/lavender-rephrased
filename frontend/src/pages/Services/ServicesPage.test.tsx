@@ -154,4 +154,42 @@ describe('ServicesPage', () => {
       });
     });
   });
+
+  it('opens service detail modal when clicking a service item row', async () => {
+    (api.get as ReturnType<typeof vi.fn>).mockImplementation((url: string) => {
+      if (url.includes('/api/system/services/')) {
+        return Promise.resolve({
+          unit: 'sshd.service',
+          description: 'OpenSSH server daemon',
+          active: true,
+          active_state: 'active',
+          sub_state: 'running',
+          load_state: 'loaded',
+        });
+      }
+      return Promise.resolve({
+        services: mockServices,
+        count: 3,
+      });
+    });
+
+    render(
+      <ToastProvider>
+        <MemoryRouter>
+          <ServicesPage />
+        </MemoryRouter>
+      </ToastProvider>
+    );
+
+    const sshdRow = await screen.findByText('sshd.service');
+    act(() => {
+      fireEvent.click(sshdRow);
+    });
+
+    await waitFor(() => {
+      expect(api.get).toHaveBeenCalledWith(
+        expect.stringContaining('/api/system/services/sshd.service')
+      );
+    });
+  });
 });
