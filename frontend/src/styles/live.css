@@ -299,6 +299,19 @@
         min-height: 195px;
         height: 220px;
     }
+
+    .overview-dashboard .card-logs {
+        height: 240px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .overview-dashboard .logs-card-body {
+        height: 200px;
+        max-height: 200px;
+        min-height: 0;
+        overflow: hidden;
+    }
 }
 
 @media (max-width: 1100px) {
@@ -853,6 +866,8 @@
     height: 100%;
     min-height: 0;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
     scrollbar-width: thin;
     scrollbar-color: rgba(6, 182, 212, 0.25) transparent;
 }
@@ -1576,10 +1591,27 @@
     }
 }
 
-/* Phablet: CPU still full-width, 4 cols is back */
+/* Phablet / Mobile Phone layout */
 @media (max-width: 768px) {
     .card-cpu .cpu-cores-grid {
         grid-template-columns: repeat(4, 1fr);
+    }
+
+    .page-title {
+        display: none !important;
+    }
+
+    .overview-dashboard .card-logs {
+        height: 240px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .overview-dashboard .logs-card-body {
+        height: 200px;
+        max-height: 200px;
+        min-height: 0;
+        overflow: hidden;
     }
 }
 
@@ -1598,6 +1630,17 @@
 
     .overview-dashboard .card {
         padding: 8px 10px;
+    }
+
+    .overview-dashboard .card-logs {
+        height: 235px;
+    }
+
+    .overview-dashboard .logs-card-body {
+        height: 195px;
+        max-height: 195px;
+        min-height: 0;
+        overflow: hidden;
     }
 }
 

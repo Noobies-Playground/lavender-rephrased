@@ -30,7 +30,7 @@ export const Topbar: React.FC<TopbarProps> = ({
         zIndex: 50,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div className="topbar-left" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         {onToggleSidebar && (
           <button
             type="button"
@@ -55,7 +55,7 @@ export const Topbar: React.FC<TopbarProps> = ({
         </h2>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div className="topbar-right" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         {/* SSE Status Indicator */}
         <div
           id="sse-status"
