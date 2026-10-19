@@ -26,7 +26,7 @@ Provides real-time metric collection for SSE streaming and sparkline visualizati
   - `RAMCollector`: Single-file reader for `/proc/meminfo`.
   - `ThermalCollector`: Sysfs reader for `/sys/class/thermal/` with friendly label mapping.
   - `BatteryCollector`: Combines sysfs `/sys/class/power_supply/` and UPower data.
-  - `NetworkCollector`: Computes RX/TX throughput rate deltas from `/sys/class/net/*/statistics`.
+  - `NetworkRateCollector`: Computes RX/TX throughput rate deltas from `/sys/class/net/*/statistics`. Selects the primary interface using a multi-factor ranking: interface category priority (WiFi > Ethernet > USB > Cellular > Other physical > VPN/overlay), operstate from sysfs, default route detection via `/proc/net/route`, and traffic volume. Virtual interfaces like Tailscale and WireGuard are deprioritized so that physical connections are always preferred on the dashboard.
 
 ### 3. `packages.py`
 Distro-agnostic package manager abstraction with adapters for:
@@ -40,7 +40,7 @@ Distro-agnostic package manager abstraction with adapters for:
 Interfaces with `systemctl` and `journalctl`:
 - Supports both system services (`systemctl`) and user services (`systemctl --user`).
 - Automatically preserves or injects `XDG_RUNTIME_DIR` (`/run/user/<uid>`) and `DBUS_SESSION_BUS_ADDRESS` for non-interactive user service management.
-- Parses structured journal logs (`journalctl -o json`).
+- Parses structured journal logs (`journalctl -o json`). Converts `__REALTIME_TIMESTAMP` (or `_SOURCE_REALTIME_TIMESTAMP`) microsecond-epoch values to ISO 8601 format, with heuristic detection for seconds vs milliseconds vs microseconds. Falls back to `SYSLOG_TIMESTAMP` when no numeric timestamp is available.
 
 ### 5. `storage.py`
 Disk usage and filesystem inspection:
