@@ -48,6 +48,13 @@ async def api_unmount(
     return res
 
 
+def is_session_admin(session: Optional[UserSession]) -> bool:
+    """Check if session is currently elevated or has admin status."""
+    if not session:
+        return False
+    return bool(session.is_elevated() or session.is_admin)
+
+
 @router.get("/files", summary="List files and directories in a path")
 async def api_list_files(
     path: Optional[str] = Query(None, description="Path to list (defaults to user home)"),
@@ -58,6 +65,7 @@ async def api_list_files(
 ):
     """List directory contents with rich file metadata and disk usage."""
     user_home = session.home if session else None
+    is_admin = is_session_admin(session)
     try:
         data = await asyncio.to_thread(
             files_service.list_directory,
@@ -66,6 +74,7 @@ async def api_list_files(
             sort_by=sort_by,
             order=order,
             user_home=user_home,
+            is_admin=is_admin,
         )
         return data
     except FileNotFoundError as e:
@@ -73,7 +82,10 @@ async def api_list_files(
     except NotADirectoryError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except PermissionError as e:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+        detail_msg = str(e)
+        if session and session.can_elevate() and not is_admin:
+            detail_msg = "Administrative elevation required to access this directory."
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=detail_msg)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
@@ -96,15 +108,19 @@ async def api_view_file(
     session: Optional[UserSession] = Depends(get_current_session),
 ):
     """Read file content and metadata for preview or code editor."""
+    is_admin = is_session_admin(session)
     try:
-        data = await asyncio.to_thread(files_service.read_file_preview, path=path)
+        data = await asyncio.to_thread(files_service.read_file_preview, path=path, is_admin=is_admin)
         return data
     except FileNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except (IsADirectoryError, ValueError) as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except PermissionError as e:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+        detail_msg = str(e)
+        if session and session.can_elevate() and not is_admin:
+            detail_msg = "Administrative elevation required to read this file."
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=detail_msg)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
@@ -119,7 +135,7 @@ async def api_raw_file(
     canonical_path = files_service.sanitize_path(path)
     if not os.path.isfile(canonical_path):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
-    if not os.access(canonical_path, os.R_OK):
+    if not os.access(canonical_path, os.R_OK) and not is_session_admin(session):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Read permission denied")
 
     filename = os.path.basename(canonical_path)
@@ -140,13 +156,22 @@ async def api_save_file(
     session: Optional[UserSession] = Depends(get_current_session),
 ):
     """Save updated text content to an existing file."""
+    is_admin = is_session_admin(session)
     try:
-        res = await asyncio.to_thread(files_service.save_file_content, path=req.path, content=req.content)
+        res = await asyncio.to_thread(
+            files_service.save_file_content,
+            path=req.path,
+            content=req.content,
+            is_admin=is_admin,
+        )
         return res
     except FileNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except PermissionError as e:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+        detail_msg = str(e)
+        if session and session.can_elevate() and not is_admin:
+            detail_msg = "Administrative elevation required to save changes to this file."
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=detail_msg)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
@@ -157,13 +182,22 @@ async def api_mkdir(
     session: Optional[UserSession] = Depends(get_current_session),
 ):
     """Create a new directory inside target path."""
+    is_admin = is_session_admin(session)
     try:
-        res = await asyncio.to_thread(files_service.make_directory, parent_path=req.path, name=req.name)
+        res = await asyncio.to_thread(
+            files_service.make_directory,
+            parent_path=req.path,
+            name=req.name,
+            is_admin=is_admin,
+        )
         return res
     except FileExistsError as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
     except PermissionError as e:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+        detail_msg = str(e)
+        if session and session.can_elevate() and not is_admin:
+            detail_msg = "Administrative elevation required to create folder in this path."
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=detail_msg)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
@@ -174,18 +208,23 @@ async def api_create_file(
     session: Optional[UserSession] = Depends(get_current_session),
 ):
     """Create a new file with optional content."""
+    is_admin = is_session_admin(session)
     try:
         res = await asyncio.to_thread(
             files_service.create_new_file,
             parent_path=req.path,
             name=req.name,
             content=req.content or "",
+            is_admin=is_admin,
         )
         return res
     except FileExistsError as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
     except PermissionError as e:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+        detail_msg = str(e)
+        if session and session.can_elevate() and not is_admin:
+            detail_msg = "Administrative elevation required to create file in this path."
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=detail_msg)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
@@ -196,11 +235,13 @@ async def api_rename(
     session: Optional[UserSession] = Depends(get_current_session),
 ):
     """Rename a file or folder."""
+    is_admin = is_session_admin(session)
     try:
         res = await asyncio.to_thread(
             files_service.rename_entry,
             old_path=req.old_path,
             new_name=req.new_name,
+            is_admin=is_admin,
         )
         return res
     except FileNotFoundError as e:
@@ -208,7 +249,10 @@ async def api_rename(
     except FileExistsError as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
     except PermissionError as e:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+        detail_msg = str(e)
+        if session and session.can_elevate() and not is_admin:
+            detail_msg = "Administrative elevation required to rename in this path."
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=detail_msg)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
@@ -219,13 +263,17 @@ async def api_delete(
     session: Optional[UserSession] = Depends(get_current_session),
 ):
     """Delete one or more files/folders safely."""
+    is_admin = is_session_admin(session)
     try:
-        res = await asyncio.to_thread(files_service.delete_entries, paths=req.paths)
+        res = await asyncio.to_thread(files_service.delete_entries, paths=req.paths, is_admin=is_admin)
         return res
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except PermissionError as e:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+        detail_msg = str(e)
+        if session and session.can_elevate() and not is_admin:
+            detail_msg = "Administrative elevation required to delete in this path."
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=detail_msg)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
@@ -240,8 +288,17 @@ async def api_upload_files(
     canonical_dir = files_service.sanitize_path(path)
     if not os.path.isdir(canonical_dir):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Destination is not a directory")
-    if not os.access(canonical_dir, os.W_OK):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied to write to destination directory")
+
+    is_admin = is_session_admin(session)
+    is_writable = os.access(canonical_dir, os.W_OK)
+    if not is_writable and not is_admin:
+        detail_msg = "Permission denied to write to destination directory"
+        if session and session.can_elevate():
+            detail_msg = "Administrative elevation required to upload files to this directory."
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=detail_msg)
+
+    from server.dependencies import run_sudo_command
+    import tempfile
 
     uploaded = []
     for file in files:
@@ -251,8 +308,23 @@ async def api_upload_files(
 
         dest_file_path = os.path.join(canonical_dir, safe_filename)
         try:
-            with open(dest_file_path, "wb") as f_out:
-                shutil.copyfileobj(file.file, f_out)
+            if is_writable:
+                with open(dest_file_path, "wb") as f_out:
+                    shutil.copyfileobj(file.file, f_out)
+            else:
+                with tempfile.NamedTemporaryFile("wb", delete=False) as tf:
+                    shutil.copyfileobj(file.file, tf)
+                    tmp_name = tf.name
+                code, out, err = run_sudo_command(["cp", "-f", tmp_name, dest_file_path])
+                if code == 0:
+                    run_sudo_command(["chmod", "644", dest_file_path])
+                if os.path.exists(tmp_name):
+                    try:
+                        os.remove(tmp_name)
+                    except Exception:
+                        pass
+                if code != 0:
+                    raise RuntimeError(f"Privileged upload failed: {err or out}")
             uploaded.append(safe_filename)
         finally:
             await file.close()

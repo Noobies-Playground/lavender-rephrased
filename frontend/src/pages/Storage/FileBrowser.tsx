@@ -8,6 +8,7 @@ import {
   StorageDiskItem,
 } from '../../api/types';
 import { useToast } from '../../context/ToastContext';
+import { useOptionalAuth } from '../../context/AuthContext';
 import { ConfirmModal } from '../../components/common/ConfirmModal';
 import { FilePreviewModal } from './FilePreviewModal';
 import { CreateFolderModal, CreateFileModal, RenameModal } from './FileModals';
@@ -66,6 +67,9 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
   onRefreshStorage,
 }) => {
   const { addToast } = useToast();
+  const auth = useOptionalAuth();
+  const session = auth?.session;
+  const isElevated = Boolean(auth?.isElevated);
 
   // Navigation and data state
   const [currentPath, setCurrentPath] = useState<string>('');
@@ -83,6 +87,8 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const canWrite = Boolean(fileData?.is_writable || session?.is_admin || isElevated || session?.can_elevate);
 
   // Bookmarks
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
@@ -525,10 +531,13 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
                   key={bm.path}
                   className={`file-sidebar-item ${isActive ? 'active' : ''}`}
                   onClick={() => navigateTo(bm.path)}
+                  title={bm.path}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
                     {getBookmarkIcon(bm.icon)}
-                    <span>{bm.name}</span>
+                    <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {bm.name}
+                    </span>
                   </div>
                 </button>
               );
@@ -549,7 +558,13 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
               const isActive = Boolean(
                 currentPath && mount && (currentPath === mount || currentPath.startsWith(mount + '/'))
               );
-              const isRoot = mount === '/' || mount === '/boot';
+              const isSystemMount =
+                mount === '/' ||
+                mount.startsWith('/sys') ||
+                mount.startsWith('/proc') ||
+                mount.startsWith('/dev') ||
+                mount.startsWith('/boot') ||
+                mount.startsWith('/run');
               const pct =
                 typeof d.pct_num === 'number'
                   ? d.pct_num
@@ -563,13 +578,25 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
                   className={`file-drive-card ${isActive ? 'active' : ''}`}
                   onClick={() => navigateTo(mount)}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Disc size={15} color="var(--purple)" />
-                      <strong style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>{mount}</strong>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0, flex: 1 }}>
+                      <Disc size={15} style={{ flexShrink: 0, color: 'var(--purple)' }} />
+                      <strong
+                        style={{
+                          fontSize: '0.82rem',
+                          color: 'var(--text-primary)',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          minWidth: 0,
+                        }}
+                        title={mount}
+                      >
+                        {mount}
+                      </strong>
                     </div>
 
-                    {!isRoot && (
+                    {!isSystemMount && (
                       <button
                         className="btn btn-xs btn-ghost"
                         title="Unmount Partition"
@@ -577,20 +604,54 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
                           e.stopPropagation();
                           onUnmountClick({ ...d, mount_point: mount, filesystem: fs });
                         }}
-                        style={{ color: '#f87171', padding: '2px 6px' }}
+                        style={{
+                          color: '#f87171',
+                          padding: '2px 6px',
+                          flexShrink: 0,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '3px',
+                        }}
                       >
-                        <Unplug size={12} style={{ marginRight: '2px' }} />
+                        <Unplug size={11} />
                         <span style={{ fontSize: '0.72rem' }}>Unmount</span>
                       </button>
                     )}
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                    <span className="font-mono">{fs}</span>
-                    <span className="badge badge-lavender" style={{ fontSize: '0.68rem', padding: '1px 5px' }}>{usePercent}</span>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: '8px',
+                      fontSize: '0.72rem',
+                      color: 'var(--text-muted)',
+                      marginTop: '5px',
+                    }}
+                  >
+                    <span
+                      className="font-mono"
+                      style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0, flex: 1 }}
+                      title={fs}
+                    >
+                      {fs}
+                    </span>
+                    <span className="badge badge-lavender" style={{ fontSize: '0.68rem', padding: '1px 5px', flexShrink: 0 }}>
+                      {usePercent}
+                    </span>
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      fontSize: '0.72rem',
+                      color: 'var(--text-secondary)',
+                      marginTop: '4px',
+                    }}
+                  >
                     <span>Used: {d.used || '—'}</span>
                     <span className="font-mono">{d.size || '—'}</span>
                   </div>
@@ -771,7 +832,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
           </div>
 
           <div className="file-toolbar-right">
-            {fileData?.is_writable && (
+            {canWrite && (
               <>
                 <button
                   className="btn btn-xs btn-secondary"
@@ -1066,6 +1127,13 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
                 <>
                   <Unlock size={12} color="var(--green)" />
                   <span style={{ color: 'var(--green)' }}>Writable</span>
+                </>
+              ) : (session?.is_admin || isElevated) ? (
+                <>
+                  <Unlock size={12} color="var(--purple)" />
+                  <span className="badge badge-lavender" style={{ fontSize: '0.68rem', padding: '1px 5px' }}>
+                    Root (Admin Write)
+                  </span>
                 </>
               ) : (
                 <>

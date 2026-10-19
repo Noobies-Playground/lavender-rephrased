@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { api } from '../../api/client';
 import { FilePreviewResponse } from '../../api/types';
 import { useToast } from '../../context/ToastContext';
+import { useOptionalAuth } from '../../context/AuthContext';
 import {
   X,
   Download,
@@ -16,6 +17,7 @@ import {
   FileAudio,
   File,
   AlertTriangle,
+  ShieldAlert,
 } from 'lucide-react';
 
 interface FilePreviewModalProps {
@@ -32,6 +34,9 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   onSaveSuccess,
 }) => {
   const { addToast } = useToast();
+  const auth = useOptionalAuth();
+  const session = auth?.session;
+  const isElevated = Boolean(auth?.isElevated);
   const [data, setData] = useState<FilePreviewResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,6 +47,9 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
   const [wrapLines, setWrapLines] = useState(true);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const canEdit = Boolean(data?.is_text && (data?.is_writable || session?.is_admin || isElevated || session?.can_elevate));
 
   useEffect(() => {
     if (!isOpen || !filePath) {
@@ -115,6 +123,25 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
       addToast(msg, 'error');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault();
+      handleSave();
+    } else if (e.key === 'Tab') {
+      e.preventDefault();
+      const textarea = e.currentTarget;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const val = textarea.value;
+      setEditContent(val.substring(0, start) + '  ' + val.substring(end));
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.selectionStart = textareaRef.current.selectionEnd = start + 2;
+        }
+      }, 0);
     }
   };
 
@@ -193,7 +220,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                   <span>{copied ? 'Copied' : 'Copy'}</span>
                 </button>
 
-                {data.is_writable && (
+                {canEdit && (
                   <button
                     className={`btn btn-xs ${isEditing ? 'btn-primary' : 'btn-secondary'}`}
                     onClick={() => {
@@ -316,18 +343,52 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
               )}
 
               {isEditing ? (
-                <textarea
-                  className="code-editor-area"
-                  value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
-                  style={{
-                    flex: 1,
-                    minHeight: '420px',
-                    whiteSpace: wrapLines ? 'pre-wrap' : 'pre',
-                  }}
-                  autoFocus
-                  placeholder="File content..."
-                />
+                <>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      fontSize: '0.74rem',
+                      color: 'var(--text-muted)',
+                      padding: '0 2px',
+                    }}
+                  >
+                    <span>
+                      Shortcuts: <strong>Ctrl+S</strong> to save · <strong>Tab</strong> to indent
+                    </span>
+                    {(!data.is_writable || session?.is_admin || isElevated) && (
+                      <span
+                        className="badge badge-lavender"
+                        style={{
+                          fontSize: '0.68rem',
+                          padding: '1px 6px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        <ShieldAlert size={11} />
+                        Elevated / Sudo Edit
+                      </span>
+                    )}
+                  </div>
+                  <textarea
+                    ref={textareaRef}
+                    className="code-editor-area"
+                    value={editContent}
+                    onChange={(e) => setEditContent(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    style={{
+                      flex: 1,
+                      minHeight: '420px',
+                      whiteSpace: wrapLines ? 'pre-wrap' : 'pre',
+                    }}
+                    autoFocus
+                    placeholder="File content..."
+                    spellCheck={false}
+                  />
+                </>
               ) : (
                 <pre
                   style={{

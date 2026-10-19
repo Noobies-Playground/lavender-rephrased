@@ -47,7 +47,7 @@
 /* ===== Main Workspace Layout ===== */
 .file-workspace {
   display: flex;
-  gap: 16px;
+  gap: 0;
   background: var(--bg-card);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -67,21 +67,41 @@
 
 /* ===== Left Sidebar: Drives & Places ===== */
 .file-sidebar {
-  width: 270px;
-  min-width: 270px;
+  width: 280px;
+  min-width: 280px;
+  max-width: 280px;
   background: rgba(6, 15, 30, 0.75);
   border-right: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
   padding: 16px 12px;
-  gap: 20px;
+  gap: 18px;
   overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.file-sidebar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.file-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.file-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.25);
+  border-radius: 4px;
+}
+
+.file-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.45);
 }
 
 @media (max-width: 900px) {
   .file-sidebar {
     width: 100%;
     min-width: 100%;
+    max-width: 100%;
     border-right: none;
     border-bottom: 1px solid var(--border-subtle);
   }
@@ -121,6 +141,7 @@
   transition: var(--transition-fast);
   text-align: left;
   width: 100%;
+  overflow: hidden;
 }
 
 .file-sidebar-item:hover {
@@ -137,13 +158,14 @@
 }
 
 .file-drive-card {
-  padding: 10px;
+  padding: 10px 12px;
   border-radius: var(--radius-md);
   background: rgba(12, 26, 46, 0.5);
   border: 1px solid var(--border-subtle);
   margin-bottom: 6px;
   cursor: pointer;
   transition: var(--transition-fast);
+  overflow: hidden;
 }
 
 .file-drive-card:hover {
@@ -558,21 +580,25 @@
 
 .code-editor-area {
   width: 100%;
-  min-height: 400px;
-  background: rgba(5, 12, 24, 0.9);
+  min-height: 420px;
+  background: rgba(5, 12, 24, 0.95);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  padding: 12px;
-  color: #e2e8f0;
+  padding: 14px;
+  color: #f1f5f9;
   font-family: var(--font-mono);
   font-size: 0.85rem;
-  line-height: 1.5;
+  line-height: 1.6;
+  tab-size: 2;
+  -moz-tab-size: 2;
   resize: vertical;
   outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .code-editor-area:focus {
   border-color: var(--purple);
+  box-shadow: 0 0 0 2px var(--lavender-glow);
 }
 
 .image-preview-frame {

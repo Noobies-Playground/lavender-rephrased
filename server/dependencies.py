@@ -33,7 +33,10 @@ def run_command(cmd: list[str], timeout: int = 30) -> tuple[int, str, str]:
 
 def run_sudo_command(cmd: list[str], timeout: int = 30) -> tuple[int, str, str]:
     """Run a command with sudo. Returns (returncode, stdout, stderr)."""
-    full_cmd = ["sudo"] + cmd
+    if cmd and cmd[0] == "-n":
+        full_cmd = ["sudo"] + cmd
+    else:
+        full_cmd = ["sudo", "-n"] + cmd
     return run_command(full_cmd, timeout)
 
 
