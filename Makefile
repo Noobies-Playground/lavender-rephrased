@@ -7,7 +7,7 @@ install:
 
 # Run backend only (FastAPI with auto-reload via uv)
 dev-backend:
-	uv run uvicorn server.main:app --reload --port 8080
+	uv run uvicorn server.main:app --reload --host 0.0.0.0 --port 8085
 
 # Run frontend dev server only (Vite HMR proxying API to :8080)
 dev-frontend:

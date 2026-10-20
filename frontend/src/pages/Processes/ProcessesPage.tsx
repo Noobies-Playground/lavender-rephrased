@@ -12,6 +12,10 @@ import {
   ArrowUpDown,
   Layers,
   Clock,
+  ChevronDown,
+  Copy,
+  Check,
+  Terminal,
 } from 'lucide-react';
 
 function parseCommand(cmd: string | undefined): { binName: string; binPath: string; args: string } {
@@ -48,9 +52,21 @@ export const ProcessesPage: React.FC = () => {
   const [pageSize, setPageSize] = useState<number | 'all'>(50);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
+  // Expandable row state & copy feedback
+  const [expandedPid, setExpandedPid] = useState<number | null>(null);
+  const [copiedType, setCopiedType] = useState<string | null>(null);
+
   // Kill process state
   const [pendingKill, setPendingKill] = useState<ProcessItem | null>(null);
   const [killLoading, setKillLoading] = useState(false);
+
+  const handleCopy = (text: string, label: string, key: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard?.writeText(text);
+    setCopiedType(key);
+    addToast(`${label} copied to clipboard`, 'success');
+    setTimeout(() => setCopiedType(null), 1500);
+  };
 
   const loadProcesses = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
@@ -361,106 +377,101 @@ export const ProcessesPage: React.FC = () => {
       </div>
 
       {/* ── Toolbar ────────────────────────────────────────────── */}
-      <div className="toolbar" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center' }}>
-        <div style={{ position: 'relative', flex: '1 1 240px', minWidth: '220px', maxWidth: '380px' }}>
+      <div className="toolbar processes-toolbar">
+        <div className="processes-search-wrap">
           <Search
             size={15}
-            style={{
-              position: 'absolute',
-              left: '12px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: 'var(--text-muted)',
-            }}
+            className="processes-search-icon"
           />
           <input
             type="search"
-            className="form-input"
+            className="form-input processes-search-input"
             placeholder="Search by PID, name, user, or cmd (e.g. chrome, python)..."
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
               setCurrentPage(1);
             }}
-            style={{ paddingLeft: '36px' }}
           />
         </div>
 
-        {/* User filter */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <label htmlFor="user-filter" className="form-label" style={{ margin: 0, fontSize: '0.82rem', whiteSpace: 'nowrap' }}>
-            User:
-          </label>
-          <CustomSelect
-            id="user-filter"
-            options={userOptions}
-            value={userFilter}
-            onChange={(val) => {
-              setUserFilter(val);
-              setCurrentPage(1);
-            }}
-            searchable={uniqueUsers.length > 5}
-          />
-        </div>
-
-        {/* Sort filter */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <label htmlFor="sort-filter" className="form-label" style={{ margin: 0, fontSize: '0.82rem', whiteSpace: 'nowrap' }}>
-            Sort:
-          </label>
-          <CustomSelect
-            id="sort-filter"
-            options={sortOptions}
-            value={sortBy}
-            onChange={(val) => handleSortDropdown(val as 'mem' | 'cpu' | 'pid' | 'name')}
-          />
-        </div>
-
-        {/* Show / limit filter */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <label htmlFor="show-limit" className="form-label" style={{ margin: 0, fontSize: '0.82rem', whiteSpace: 'nowrap' }}>
-            Show:
-          </label>
-          <CustomSelect
-            id="show-limit"
-            options={showOptions}
-            value={pageSize}
-            onChange={(val) => {
-              const parsed = val === 'all' ? 'all' : Number(val);
-              setPageSize(parsed);
-              setCurrentPage(1);
-            }}
-          />
-        </div>
-
-        {/* Auto-refresh */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: 'var(--text-secondary)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-            <input
-              type="checkbox"
-              checked={autoRefresh}
-              onChange={(e) => setAutoRefresh(e.target.checked)}
-              style={{ accentColor: 'var(--purple)' }}
+        <div className="processes-filter-grid">
+          {/* User filter */}
+          <div className="processes-filter-item">
+            <label htmlFor="user-filter" className="form-label processes-filter-label">
+              User:
+            </label>
+            <CustomSelect
+              id="user-filter"
+              options={userOptions}
+              value={userFilter}
+              onChange={(val) => {
+                setUserFilter(val);
+                setCurrentPage(1);
+              }}
+              searchable={uniqueUsers.length > 5}
+              className="processes-filter-select"
             />
-            Auto-refresh (5s)
-          </label>
-        </div>
+          </div>
 
-        {/* Refresh button */}
-        <button
-          className="btn btn-secondary"
-          onClick={() => loadProcesses(true)}
-          disabled={loading || refreshing}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginLeft: 'auto' }}
-        >
-          <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
-          <span>Refresh</span>
-        </button>
+          {/* Sort filter */}
+          <div className="processes-filter-item">
+            <label htmlFor="sort-filter" className="form-label processes-filter-label">
+              Sort:
+            </label>
+            <CustomSelect
+              id="sort-filter"
+              options={sortOptions}
+              value={sortBy}
+              onChange={(val) => handleSortDropdown(val as 'mem' | 'cpu' | 'pid' | 'name')}
+              className="processes-filter-select"
+            />
+          </div>
+
+          {/* Show / limit filter */}
+          <div className="processes-filter-item">
+            <label htmlFor="show-limit" className="form-label processes-filter-label">
+              Show:
+            </label>
+            <CustomSelect
+              id="show-limit"
+              options={showOptions}
+              value={pageSize}
+              onChange={(val) => {
+                const parsed = val === 'all' ? 'all' : Number(val);
+                setPageSize(parsed);
+                setCurrentPage(1);
+              }}
+              className="processes-filter-select"
+            />
+          </div>
+
+          {/* Refresh & Auto-refresh actions */}
+          <div className="processes-filter-item processes-filter-btn-item">
+            <label className="processes-autorefresh-label">
+              <input
+                type="checkbox"
+                checked={autoRefresh}
+                onChange={(e) => setAutoRefresh(e.target.checked)}
+                style={{ accentColor: 'var(--purple)' }}
+              />
+              Auto (5s)
+            </label>
+            <button
+              className="btn btn-secondary processes-refresh-btn"
+              onClick={() => loadProcesses(true)}
+              disabled={loading || refreshing}
+            >
+              <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
+              <span>Refresh</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* ── Table Card ─────────────────────────────────────────── */}
-      <div className="card">
-        <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+      <div className="card processes-card">
+        <div className="card-header processes-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <h3 style={{ margin: 0, fontSize: '1.05rem' }}>
               Processes ({data?.processes?.length || 0})
@@ -477,38 +488,38 @@ export const ProcessesPage: React.FC = () => {
         </div>
 
         <div className="card-body" style={{ padding: 0 }}>
-          <div style={{ overflowX: 'auto' }}>
-            <table className="table">
+          <div className="table-scroll-wrap processes-table-wrap">
+            <table className="table processes-table">
               <thead>
                 <tr>
-                  <th style={{ width: '80px', cursor: 'pointer' }} onClick={() => handleSort('pid')}>
+                  <th className="proc-col-pid" style={{ width: '80px', cursor: 'pointer' }} onClick={() => handleSort('pid')}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                       PID {sortBy === 'pid' && <ArrowUpDown size={11} color="var(--accent)" />}
                     </span>
                   </th>
-                  <th style={{ width: '105px', cursor: 'pointer' }} onClick={() => handleSort('user')}>
+                  <th className="proc-col-user" style={{ width: '105px', cursor: 'pointer' }} onClick={() => handleSort('user')}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                       USER {sortBy === 'user' && <ArrowUpDown size={11} color="var(--accent)" />}
                     </span>
                   </th>
-                  <th style={{ width: '90px', cursor: 'pointer' }} onClick={() => handleSort('cpu')}>
+                  <th className="proc-col-cpu" style={{ width: '90px', cursor: 'pointer' }} onClick={() => handleSort('cpu')}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                       CPU {sortBy === 'cpu' && <ArrowUpDown size={11} color="var(--accent)" />}
                     </span>
                   </th>
-                  <th style={{ width: '155px', cursor: 'pointer' }} onClick={() => handleSort('mem')}>
+                  <th className="proc-col-mem" style={{ width: '155px', cursor: 'pointer' }} onClick={() => handleSort('mem')}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                       MEMORY {sortBy === 'mem' && <ArrowUpDown size={11} color="var(--accent)" />}
                     </span>
                   </th>
-                  <th style={{ width: '95px' }}>STATE</th>
-                  <th style={{ width: '85px' }}>TIME</th>
-                  <th style={{ cursor: 'pointer' }} onClick={() => handleSort('name')}>
+                  <th className="proc-col-state" style={{ width: '95px' }}>STATE</th>
+                  <th className="proc-col-time" style={{ width: '85px' }}>TIME</th>
+                  <th className="proc-col-cmd" style={{ cursor: 'pointer' }} onClick={() => handleSort('name')}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                       COMMAND {sortBy === 'name' && <ArrowUpDown size={11} color="var(--accent)" />}
                     </span>
                   </th>
-                  <th style={{ width: '80px', textAlign: 'right' }}>ACTION</th>
+                  <th className="proc-col-action" style={{ width: '80px', textAlign: 'right' }}>ACTION</th>
                 </tr>
               </thead>
               <tbody>
@@ -563,89 +574,201 @@ export const ProcessesPage: React.FC = () => {
 
                     // Command display
                     const { binName, binPath, args } = parseCommand(p.command);
+                    const isExpanded = expandedPid === p.pid;
 
                     return (
-                      <tr key={p.pid}>
-                        <td className="font-mono" style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                          {p.pid}
-                        </td>
-                        <td>
-                          <span className={`badge ${p.user.toLowerCase() === 'root' ? 'system' : 'user'}`}>
-                            {p.user.toUpperCase()}
-                          </span>
-                        </td>
-                        <td>
-                          <span
-                            className="font-mono"
-                            style={{
-                              fontSize: '0.85rem',
-                              color: isHighCpu ? 'var(--red)' : isWarnCpu ? 'var(--yellow)' : 'var(--text-muted)',
-                              fontWeight: isHighCpu || isWarnCpu ? 600 : 400,
-                            }}
-                          >
-                            {cpuDisplay}
-                          </span>
-                        </td>
-                        <td>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <React.Fragment key={p.pid}>
+                        <tr
+                          className={`proc-row ${isExpanded ? 'is-expanded' : ''}`}
+                          onClick={() => setExpandedPid(isExpanded ? null : p.pid)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              setExpandedPid(isExpanded ? null : p.pid);
+                            }
+                          }}
+                          tabIndex={0}
+                          title={`Click to view details for ${p.name || binName} (PID: ${p.pid})`}
+                        >
+                          <td className="proc-col-pid font-mono">
+                            <span className="proc-pid-pill">
+                              <span className="proc-pid-hash">#</span>{p.pid}
+                            </span>
+                          </td>
+                          <td className="proc-col-user">
+                            <span className={`badge ${p.user.toLowerCase() === 'root' ? 'system' : 'user'}`}>
+                              {p.user.toUpperCase()}
+                            </span>
+                          </td>
+                          <td className="proc-col-cpu">
                             <span
-                              className="font-mono"
-                              style={{
-                                fontSize: '0.85rem',
-                                color: isHighMem ? 'var(--red)' : isWarnMem ? 'var(--yellow)' : 'var(--text-primary)',
-                                fontWeight: 600,
-                              }}
+                              className={`font-mono proc-metric-val ${isHighCpu ? 'crit' : isWarnCpu ? 'warn' : ''}`}
                             >
-                              {memFormatted}
+                              <span className="proc-metric-label">CPU: </span>
+                              {cpuDisplay}
                             </span>
-                            {memPct != null && memPct > 0 && (
-                              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                                ({memPct.toFixed(1)}%)
+                          </td>
+                          <td className="proc-col-mem">
+                            <div className="proc-mem-group">
+                              <span
+                                className={`font-mono proc-metric-val ${isHighMem ? 'crit' : isWarnMem ? 'warn' : ''}`}
+                              >
+                                <span className="proc-metric-label">MEM: </span>
+                                {memFormatted}
                               </span>
-                            )}
-                          </div>
-                        </td>
-                        <td>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <span className={`status-indicator ${stateIndicator}`} />
-                            <span className="font-mono" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                              {stateText}
+                              {memPct != null && memPct > 0 && (
+                                <span className="proc-mem-pct">
+                                  ({memPct.toFixed(1)}%)
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="proc-col-state">
+                            <div className="proc-state-pill">
+                              <span className={`status-indicator ${stateIndicator}`} />
+                              <span className="font-mono proc-state-text">
+                                {stateText}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="proc-col-time">
+                            <span className="font-mono proc-time-text">
+                              <span className="proc-metric-label">Time: </span>
+                              {p.time || '0:00'}
                             </span>
-                          </div>
-                        </td>
-                        <td>
-                          <span className="font-mono" style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                            {p.time || '0:00'}
-                          </span>
-                        </td>
-                        <td style={{ maxWidth: '440px' }} title={p.command}>
-                          <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            <strong style={{ color: 'var(--text-primary)', fontSize: '0.86rem', fontFamily: 'var(--font-mono)' }}>
-                              {binName}
-                            </strong>
-                            {binPath && (
-                              <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginLeft: '4px', fontFamily: 'var(--font-mono)' }}>
-                                ({binPath})
+                          </td>
+                          <td className="proc-col-cmd" title={p.command}>
+                            <div className="proc-cmd-cell">
+                              <div className="proc-cmd-primary">
+                                <strong className="proc-bin-name font-mono">
+                                  {p.name || binName}
+                                </strong>
+                                {binPath && (
+                                  <span className="proc-bin-path font-mono">
+                                    ({binPath})
+                                  </span>
+                                )}
+                              </div>
+                              {args && (
+                                <span className="proc-cmd-args font-mono">
+                                  {args}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="proc-col-action">
+                            <div className="proc-action-group">
+                              <button
+                                className="btn btn-xs btn-danger proc-kill-btn"
+                                title="Kill Process"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setPendingKill(p);
+                                }}
+                              >
+                                Kill
+                              </button>
+                              <span className={`proc-chevron ${isExpanded ? 'is-open' : ''}`} aria-hidden="true">
+                                <ChevronDown size={14} />
                               </span>
-                            )}
-                            {args && (
-                              <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginLeft: '6px', fontFamily: 'var(--font-mono)' }}>
-                                {args}
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td style={{ textAlign: 'right' }}>
-                          <button
-                            className="btn btn-xs btn-danger"
-                            title="Kill Process"
-                            onClick={() => setPendingKill(p)}
-                            style={{ padding: '4px 10px', fontSize: '0.78rem' }}
-                          >
-                            Kill
-                          </button>
-                        </td>
-                      </tr>
+                            </div>
+                          </td>
+                        </tr>
+
+                        {/* Expandable Process Detail Drawer */}
+                        {isExpanded && (
+                          <tr className="proc-drawer-row">
+                            <td colSpan={8} className="proc-drawer-cell">
+                              <div className="proc-drawer-content">
+                                <div className="proc-drawer-header">
+                                  <div className="proc-drawer-title">
+                                    <Terminal size={14} />
+                                    <span>Command Details</span>
+                                  </div>
+                                  <div className="proc-drawer-actions">
+                                    <button
+                                      type="button"
+                                      className="btn btn-xs btn-secondary"
+                                      onClick={(e) => handleCopy(p.command, 'Command', `cmd-${p.pid}`, e)}
+                                    >
+                                      {copiedType === `cmd-${p.pid}` ? <Check size={12} color="var(--green)" /> : <Copy size={12} />}
+                                      <span>{copiedType === `cmd-${p.pid}` ? 'Copied' : 'Copy Command'}</span>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="btn btn-xs btn-secondary"
+                                      onClick={(e) => handleCopy(String(p.pid), 'PID', `pid-${p.pid}`, e)}
+                                    >
+                                      {copiedType === `pid-${p.pid}` ? <Check size={12} color="var(--green)" /> : <Copy size={12} />}
+                                      <span>{copiedType === `pid-${p.pid}` ? 'Copied' : 'Copy PID'}</span>
+                                    </button>
+                                  </div>
+                                </div>
+
+                                {/* Full Command Box */}
+                                <div className="proc-command-box font-mono">
+                                  {p.command}
+                                </div>
+
+                                {/* Detailed Context Specs */}
+                                <div className="proc-drawer-specs">
+                                  <div className="proc-spec-item">
+                                    <span className="proc-spec-label">PID</span>
+                                    <span className="proc-spec-val font-mono">{p.pid}</span>
+                                  </div>
+                                  <div className="proc-spec-item">
+                                    <span className="proc-spec-label">USER</span>
+                                    <span className="proc-spec-val">{p.user}</span>
+                                  </div>
+                                  <div className="proc-spec-item">
+                                    <span className="proc-spec-label">STATUS</span>
+                                    <span className="proc-spec-val" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                      <span className={`status-indicator ${stateIndicator}`} />
+                                      {stateText} {p.stat ? `(${p.stat})` : ''}
+                                    </span>
+                                  </div>
+                                  <div className="proc-spec-item">
+                                    <span className="proc-spec-label">CPU TIME</span>
+                                    <span className="proc-spec-val font-mono">{p.time || '0:00'}</span>
+                                  </div>
+                                  <div className="proc-spec-item">
+                                    <span className="proc-spec-label">CPU USAGE</span>
+                                    <span className="proc-spec-val font-mono" style={{ color: isHighCpu ? 'var(--red)' : isWarnCpu ? 'var(--yellow)' : 'inherit' }}>
+                                      {cpuDisplay}
+                                    </span>
+                                  </div>
+                                  <div className="proc-spec-item">
+                                    <span className="proc-spec-label">MEMORY</span>
+                                    <span className="proc-spec-val font-mono">
+                                      {memFormatted} {memPct != null && memPct > 0 ? `(${memPct.toFixed(1)}%)` : ''}
+                                    </span>
+                                  </div>
+                                  {binPath && (
+                                    <div className="proc-spec-item proc-spec-full">
+                                      <span className="proc-spec-label">EXECUTABLE PATH</span>
+                                      <span className="proc-spec-val font-mono" style={{ wordBreak: 'break-all' }}>{binPath}{binName}</span>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Drawer Footer Action */}
+                                <div className="proc-drawer-footer">
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm btn-danger proc-drawer-kill-btn"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setPendingKill(p);
+                                    }}
+                                  >
+                                    Terminate Process (SIGKILL)
+                                  </button>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
                     );
                   })
                 )}
