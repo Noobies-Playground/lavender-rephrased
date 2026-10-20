@@ -1835,6 +1835,71 @@
     font-weight: 600;
 }
 
+/* Interfaces Toolbar & Table */
+.iface-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.iface-header-title-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.iface-header-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.iface-search-wrap {
+    position: relative;
+    width: 220px;
+}
+
+.iface-search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.iface-search-input {
+    padding-left: 32px;
+    padding-right: 10px;
+    height: 34px;
+    font-size: 0.82rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.iface-header-actions-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.iface-view-toggle {
+    display: flex;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: var(--radius-sm);
+    padding: 2px;
+    border: 1px solid var(--border);
+}
+
+.iface-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+}
+
 /* Interfaces Grid & Cards */
 .interfaces-grid {
     display: grid;
@@ -1866,17 +1931,22 @@
 
 .iface-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     margin-bottom: 12px;
     padding-bottom: 10px;
     border-bottom: 1px solid var(--border-subtle);
+    gap: 8px;
 }
 
 .iface-title-wrap {
     display: flex;
     align-items: center;
     gap: 10px;
+    min-width: 0;
+    order: 1;
+}
+
+.iface-name-wrap {
     min-width: 0;
 }
 
@@ -1907,6 +1977,12 @@
     display: flex;
     align-items: center;
     gap: 6px;
+    order: 2;
+    margin-left: auto;
+}
+
+.iface-status-badge {
+    order: 3;
     flex-shrink: 0;
 }
 
@@ -1998,15 +2074,21 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
 .iface-row .label {
     color: var(--text-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .iface-row .value {
     color: var(--text-secondary);
     font-family: 'JetBrains Mono', monospace;
+    text-align: right;
+    min-width: 0;
 }
 
 /* Address List & Badges */
@@ -2540,7 +2622,182 @@
     }
 }
 
+@media (max-width: 640px) {
+    .iface-card-header {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    .iface-header-title-group {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .iface-header-controls {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        gap: 8px;
+    }
+    .iface-search-wrap {
+        width: 100%;
+    }
+    .iface-header-actions-group {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .iface-refresh-btn {
+        flex: 1;
+        justify-content: center;
+    }
+    .iface-filters-row {
+        margin-bottom: 12px;
+    }
+    .iface-filters {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding: 2px 2px 6px 2px;
+        margin: 0 -2px;
+    }
+    .iface-filters::-webkit-scrollbar {
+        display: none;
+    }
+    .iface-filter-btn {
+        flex-shrink: 0;
+        padding: 5px 12px;
+        font-size: 11.5px;
+        white-space: nowrap;
+    }
+}
+
 @media (max-width: 600px) {
+    .dashboard-content {
+        padding: 10px 10px 16px !important;
+    }
+    .card.iface-main-card {
+        padding: 12px;
+        border-radius: var(--radius-md);
+    }
+    .iface-card {
+        padding: 12px;
+    }
+    .interfaces-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    /* Interface Card Header Mobile Layout */
+    .iface-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        row-gap: 8px;
+        column-gap: 8px;
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+    }
+    .iface-title-wrap {
+        order: 1;
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+    .iface-icon {
+        width: 28px;
+        height: 28px;
+    }
+    .iface-header h4 {
+        font-size: 14px;
+    }
+    .iface-status-badge {
+        order: 2;
+        margin-left: auto;
+    }
+    .iface-badges {
+        order: 3;
+        width: 100%;
+        margin-left: 0;
+        padding-left: 38px; /* 28px icon + 10px gap */
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    /* Traffic Bar Mobile */
+    .iface-traffic-bar {
+        padding: 6px 10px;
+        font-size: 11px;
+        margin-bottom: 10px;
+    }
+    .traffic-col {
+        gap: 4px;
+    }
+
+    /* Details Rows Mobile */
+    .iface-details {
+        gap: 5px;
+        font-size: 11px;
+    }
+    .iface-row {
+        gap: 2px 6px;
+    }
+    .iface-row .label {
+        font-size: 11px;
+    }
+    .iface-row .value {
+        font-size: 11px;
+        word-break: break-all;
+    }
+
+    /* Addresses Section Mobile */
+    .addr-section {
+        margin-top: 10px;
+        padding-top: 8px;
+        gap: 5px;
+    }
+    .addr-item {
+        padding: 4px 6px;
+        gap: 6px;
+    }
+    .addr-text {
+        font-size: 10px;
+        line-height: 1.35;
+    }
+
+    /* Table view Mobile */
+    .iface-table-wrap {
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border-subtle);
+    }
+    .iface-table-wrap table {
+        font-size: 11px;
+        min-width: 540px;
+    }
+    .iface-table-wrap th,
+    .iface-table-wrap td {
+        padding: 7px 8px;
+        white-space: nowrap;
+    }
+
+    /* Tabs Bar Mobile */
+    .tabs {
+        gap: 2px;
+        margin-bottom: 14px;
+    }
+    .tab {
+        padding: 8px 12px;
+        font-size: 12px;
+        gap: 6px;
+    }
+    .iface-wifi-tab-badge {
+        max-width: 90px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
     .net-summary-bar {
         grid-template-columns: 1fr;
     }

@@ -579,7 +579,7 @@ export const NetworkPage: React.FC = () => {
           <Wifi size={15} />
           <span>WiFi</span>
           {wifiInfo?.connected && wifiInfo.ssid && (
-            <span className="badge badge-success" style={{ fontSize: '10px', padding: '1px 6px' }}>
+            <span className="badge badge-success iface-wifi-tab-badge" style={{ fontSize: '10px', padding: '1px 6px' }}>
               {wifiInfo.ssid}
             </span>
           )}
@@ -609,72 +609,71 @@ export const NetworkPage: React.FC = () => {
           TAB 1: INTERFACES
          ══════════════════════════════════════════════════════════════ */}
       {activeTab === 'interfaces' && (
-        <div className="card">
-          <div
-            className="card-header"
-            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="card iface-main-card">
+          <div className="card-header iface-card-header">
+            <div className="iface-header-title-group">
               <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 600 }}>Network Interfaces</h3>
               <span className="badge badge-neutral">{filteredInterfaces.length} of {rawInterfaces.length}</span>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div className="iface-header-controls">
               {/* Search input */}
-              <div style={{ position: 'relative', width: '220px' }}>
+              <div className="iface-search-wrap">
                 <Search
                   size={14}
-                  style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}
+                  className="iface-search-icon"
                 />
                 <input
                   type="text"
-                  className="form-input"
-                  style={{ paddingLeft: '32px', paddingRight: '10px', height: '34px', fontSize: '0.82rem' }}
+                  className="form-input iface-search-input"
                   placeholder="Filter interfaces…"
                   value={ifaceSearch}
                   onChange={(e) => setIfaceSearch(e.target.value)}
                 />
               </div>
 
-              {/* View Switcher: Grid vs Table */}
-              <div style={{ display: 'flex', background: 'rgba(0,0,0,0.3)', borderRadius: 'var(--radius-sm)', padding: '2px', border: '1px solid var(--border)' }}>
+              <div className="iface-header-actions-group">
+                {/* View Switcher: Grid vs Table */}
+                <div className="iface-view-toggle">
+                  <button
+                    className={`btn-ghost btn-xs ${ifaceViewMode === 'grid' ? 'active' : ''}`}
+                    onClick={() => setIfaceViewMode('grid')}
+                    style={{
+                      background: ifaceViewMode === 'grid' ? 'var(--accent-dim)' : 'transparent',
+                      color: ifaceViewMode === 'grid' ? 'var(--accent)' : 'var(--text-muted)',
+                      borderRadius: '4px',
+                      padding: '4px 8px',
+                    }}
+                    title="Card Grid View"
+                  >
+                    <LayoutGrid size={14} />
+                  </button>
+                  <button
+                    className={`btn-ghost btn-xs ${ifaceViewMode === 'table' ? 'active' : ''}`}
+                    onClick={() => setIfaceViewMode('table')}
+                    style={{
+                      background: ifaceViewMode === 'table' ? 'var(--accent-dim)' : 'transparent',
+                      color: ifaceViewMode === 'table' ? 'var(--accent)' : 'var(--text-muted)',
+                      borderRadius: '4px',
+                      padding: '4px 8px',
+                    }}
+                    title="Dense Table View"
+                  >
+                    <List size={14} />
+                  </button>
+                </div>
+
                 <button
-                  className={`btn-ghost btn-xs ${ifaceViewMode === 'grid' ? 'active' : ''}`}
-                  onClick={() => setIfaceViewMode('grid')}
-                  style={{
-                    background: ifaceViewMode === 'grid' ? 'var(--accent-dim)' : 'transparent',
-                    color: ifaceViewMode === 'grid' ? 'var(--accent)' : 'var(--text-muted)',
-                    borderRadius: '4px',
-                    padding: '4px 8px',
-                  }}
-                  title="Card Grid View"
+                  className="btn btn-sm btn-secondary iface-refresh-btn"
+                  onClick={() => loadNetwork(true)}
+                  disabled={loading || refreshing}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+                  title="Refresh interfaces"
                 >
-                  <LayoutGrid size={14} />
-                </button>
-                <button
-                  className={`btn-ghost btn-xs ${ifaceViewMode === 'table' ? 'active' : ''}`}
-                  onClick={() => setIfaceViewMode('table')}
-                  style={{
-                    background: ifaceViewMode === 'table' ? 'var(--accent-dim)' : 'transparent',
-                    color: ifaceViewMode === 'table' ? 'var(--accent)' : 'var(--text-muted)',
-                    borderRadius: '4px',
-                    padding: '4px 8px',
-                  }}
-                  title="Dense Table View"
-                >
-                  <List size={14} />
+                  <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} />
+                  <span>Refresh</span>
                 </button>
               </div>
-
-              <button
-                className="btn btn-sm btn-secondary"
-                onClick={() => loadNetwork(true)}
-                disabled={loading || refreshing}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}
-              >
-                <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} />
-                <span>Refresh</span>
-              </button>
             </div>
           </div>
 
@@ -761,17 +760,21 @@ export const NetworkPage: React.FC = () => {
                       <div className="iface-header">
                         <div className="iface-title-wrap">
                           <div className="iface-icon">{renderInterfaceIcon(iface.category || iface.type)}</div>
-                          <div>
+                          <div className="iface-name-wrap">
                             <h4>{iface.name}</h4>
                           </div>
                         </div>
-                        <div className="iface-badges">
-                          {isDefault && <span className="badge-default">DEFAULT</span>}
-                          <span className="badge-type">{iface.category || iface.type || 'ethernet'}</span>
-                          <span className={`badge ${isUp ? 'status-active' : 'status-inactive'}`}>
-                            {iface.state || (isUp ? 'UP' : 'DOWN')}
-                          </span>
-                        </div>
+
+                        <span className={`badge iface-status-badge ${isUp ? 'status-active' : 'status-inactive'}`}>
+                          {iface.state || (isUp ? 'UP' : 'DOWN')}
+                        </span>
+
+                        {(isDefault || iface.category || iface.type) && (
+                          <div className="iface-badges">
+                            {isDefault && <span className="badge-default">DEFAULT</span>}
+                            <span className="badge-type">{iface.category || iface.type || 'ethernet'}</span>
+                          </div>
+                        )}
                       </div>
 
                       {/* Live RX / TX Stats Bar */}
@@ -893,7 +896,7 @@ export const NetworkPage: React.FC = () => {
               </div>
             ) : (
               /* Compact Table View */
-              <div style={{ overflowX: 'auto' }}>
+              <div className="iface-table-wrap">
                 <table className="table">
                   <thead>
                     <tr>
