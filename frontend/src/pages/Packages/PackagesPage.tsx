@@ -150,21 +150,24 @@ export const PackagesPage: React.FC = () => {
   const upgradableList = data?.upgradable || [];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div className="packages-page">
       {/* ── Header & Distro Summary ────────────────────────────── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Package size={22} color="var(--purple)" />
-          <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>Package Manager</h2>
-          <span className="badge badge-lavender font-mono">{data?.backend_name || 'Detecting…'}</span>
+      <div className="packages-header-strip">
+        <div className="packages-header-title-group">
+          <div className="packages-title-row">
+            <Package size={22} color="var(--purple)" className="packages-title-icon" />
+            <h2 className="packages-page-title">Package Manager</h2>
+          </div>
+          <span className="badge badge-lavender packages-backend-badge font-mono">
+            {data?.backend_name || 'Detecting…'}
+          </span>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div className="packages-header-actions">
           {upgradableList.length > 0 && (
             <button
-              className="btn btn-primary"
+              className="btn btn-primary packages-upgrade-all-btn"
               onClick={() => setPendingAction({ type: 'upgrade-all' })}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             >
               <ArrowUpCircle size={15} />
               <span>Upgrade All ({upgradableList.length})</span>
@@ -172,10 +175,10 @@ export const PackagesPage: React.FC = () => {
           )}
 
           <button
-            className="btn btn-secondary"
+            className="btn btn-secondary packages-refresh-btn"
             onClick={() => loadPackages(true)}
             disabled={loading || refreshing}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            title="Refresh package lists"
           >
             <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
             <span>Refresh</span>
@@ -184,121 +187,117 @@ export const PackagesPage: React.FC = () => {
       </div>
 
       {/* ── Summary Counters ───────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+      <div className="packages-metrics-grid">
         <div
-          className={`card ${activeTab === 'upgradable' ? 'active-glow' : ''}`}
-          style={{ padding: '16px', cursor: 'pointer' }}
+          className={`card packages-metric-card ${activeTab === 'upgradable' ? 'active-glow' : ''}`}
           onClick={() => setActiveTab('upgradable')}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Upgrades Available</span>
-            <ArrowUpCircle size={18} color={upgradableList.length > 0 ? '#38bdf8' : 'var(--text-muted)'} />
+          <div className="packages-metric-header">
+            <span className="packages-metric-label">
+              <span className="label-full">Upgrades Available</span>
+              <span className="label-short">Upgrades</span>
+            </span>
+            <ArrowUpCircle size={16} color={upgradableList.length > 0 ? '#38bdf8' : 'var(--text-muted)'} />
           </div>
-          <div style={{ fontSize: '1.6rem', fontWeight: 700, color: '#38bdf8', marginTop: '6px' }}>
+          <div className="packages-metric-value val-upgrades">
             {data?.upgradable_count ?? 0}
           </div>
         </div>
 
         <div
-          className={`card ${activeTab === 'installed' ? 'active-glow' : ''}`}
-          style={{ padding: '16px', cursor: 'pointer' }}
+          className={`card packages-metric-card ${activeTab === 'installed' ? 'active-glow' : ''}`}
           onClick={() => setActiveTab('installed')}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Installed Packages</span>
-            <Layers size={18} color="var(--purple)" />
+          <div className="packages-metric-header">
+            <span className="packages-metric-label">
+              <span className="label-full">Installed Packages</span>
+              <span className="label-short">Installed</span>
+            </span>
+            <Layers size={16} color="var(--purple)" />
           </div>
-          <div style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--purple)', marginTop: '6px' }}>
+          <div className="packages-metric-value val-installed">
             {data?.installed_count ?? 0}
           </div>
         </div>
 
         <div
-          className={`card ${activeTab === 'search' ? 'active-glow' : ''}`}
-          style={{ padding: '16px', cursor: 'pointer' }}
+          className={`card packages-metric-card ${activeTab === 'search' ? 'active-glow' : ''}`}
           onClick={() => setActiveTab('search')}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Search Repositories</span>
-            <Sparkles size={18} color="var(--green)" />
+          <div className="packages-metric-header">
+            <span className="packages-metric-label">
+              <span className="label-full">Search Repositories</span>
+              <span className="label-short">Search</span>
+            </span>
+            <Sparkles size={16} color="var(--green)" />
           </div>
-          <div style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--green)', marginTop: '6px' }}>
+          <div className="packages-metric-value val-search">
             {searchResults.length}
           </div>
         </div>
       </div>
 
       {/* ── Search Bar ─────────────────────────────────────────── */}
-      <form onSubmit={handleSearch} style={{ display: 'flex', gap: '8px' }}>
-        <div style={{ position: 'relative', flex: 1 }}>
-          <Search
-            size={16}
-            style={{
-              position: 'absolute',
-              left: '12px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: 'var(--text-muted)',
-            }}
-          />
+      <form onSubmit={handleSearch} className="packages-search-form">
+        <div className="packages-search-input-wrap">
+          <Search size={16} className="packages-search-icon" />
           <input
             type="search"
-            className="form-input"
-            placeholder="Search online repositories (e.g. htop, curl, nodejs)..."
+            className="form-input packages-search-input"
+            placeholder="Search online repositories (e.g. htop, curl)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ paddingLeft: '36px' }}
           />
         </div>
-        <button type="submit" className="btn btn-primary" disabled={searchLoading}>
-          {searchLoading ? 'Searching…' : 'Search Repos'}
+        <button type="submit" className="btn btn-primary packages-search-btn" disabled={searchLoading}>
+          <Search size={14} />
+          <span>{searchLoading ? 'Searching…' : 'Search Repos'}</span>
         </button>
       </form>
 
       {/* ── Main Tab Content ───────────────────────────────────── */}
-      <div className="card">
+      <div className="card packages-main-card">
         {/* Tab Header */}
-        <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', gap: '16px' }}>
+        <div className="card-header packages-tab-header">
+          <div className="packages-tabs-list">
             <button
-              className={`btn btn-ghost ${activeTab === 'upgradable' ? 'btn-active' : ''}`}
+              className={`packages-tab-btn ${activeTab === 'upgradable' ? 'active' : ''}`}
               onClick={() => setActiveTab('upgradable')}
-              style={{ fontWeight: activeTab === 'upgradable' ? 700 : 500 }}
             >
               Upgradable ({upgradableList.length})
             </button>
             <button
-              className={`btn btn-ghost ${activeTab === 'installed' ? 'btn-active' : ''}`}
+              className={`packages-tab-btn ${activeTab === 'installed' ? 'active' : ''}`}
               onClick={() => setActiveTab('installed')}
-              style={{ fontWeight: activeTab === 'installed' ? 700 : 500 }}
             >
               Installed ({data?.installed_count ?? 0})
             </button>
             <button
-              className={`btn btn-ghost ${activeTab === 'search' ? 'btn-active' : ''}`}
+              className={`packages-tab-btn ${activeTab === 'search' ? 'active' : ''}`}
               onClick={() => setActiveTab('search')}
-              style={{ fontWeight: activeTab === 'search' ? 700 : 500 }}
             >
               Repository Search ({searchResults.length})
             </button>
           </div>
 
           {activeTab === 'installed' && (
-            <input
-              type="text"
-              className="form-input"
-              placeholder="Filter installed..."
-              value={installedFilter}
-              onChange={(e) => setInstalledFilter(e.target.value)}
-              style={{ width: '200px', padding: '4px 10px', fontSize: '0.82rem' }}
-            />
+            <div className="packages-filter-wrap">
+              <Search size={13} className="packages-filter-icon" />
+              <input
+                type="text"
+                className="form-input packages-filter-input"
+                placeholder="Filter installed..."
+                value={installedFilter}
+                onChange={(e) => setInstalledFilter(e.target.value)}
+              />
+            </div>
           )}
         </div>
 
         {/* Tab Body */}
-        <div className="card-body" style={{ padding: 0 }}>
-          <div style={{ overflowX: 'auto' }}>
-            <table className="table">
+        <div className="card-body packages-card-body" style={{ padding: 0 }}>
+          <div className="packages-table-wrap">
+            <table className="table packages-table">
               <thead>
                 <tr>
                   <th>Package Name</th>
@@ -311,31 +310,36 @@ export const PackagesPage: React.FC = () => {
               <tbody>
                 {activeTab === 'upgradable' ? (
                   upgradableList.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
+                    <tr className="pkg-empty-row">
+                      <td colSpan={5} className="pkg-empty-state">
                         <CheckCircle2 size={24} color="#34d399" style={{ marginBottom: '8px' }} />
                         <div>System is completely up to date. No pending updates found.</div>
                       </td>
                     </tr>
                   ) : (
                     upgradableList.map((p) => (
-                      <tr key={p.name}>
-                        <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{p.name}</td>
-                        <td className="font-mono" style={{ color: 'var(--text-muted)' }}>
-                          {p.version || '—'}
+                      <tr key={p.name} className="pkg-row pkg-row-upgradable">
+                        <td className="pkg-cell-name">
+                          <Package size={14} className="pkg-name-icon" />
+                          <span className="pkg-name-text">{p.name}</span>
                         </td>
-                        <td className="font-mono" style={{ color: '#38bdf8', fontWeight: 600 }}>
-                          {p.new_version || 'Available'}
+                        <td className="pkg-cell-current font-mono">
+                          <span className="pkg-ver-label">Current:</span>
+                          <span className="pkg-ver-cur-val">{p.version || '—'}</span>
                         </td>
-                        <td style={{ color: 'var(--text-secondary)', fontSize: '0.82rem' }}>
+                        <td className="pkg-cell-target font-mono">
+                          <span className="pkg-ver-label">Target:</span>
+                          <span className="pkg-ver-target-val">{p.new_version || 'Available'}</span>
+                        </td>
+                        <td className={`pkg-cell-desc ${!p.description ? 'pkg-desc-empty' : ''}`}>
                           {p.description || '—'}
                         </td>
-                        <td style={{ textAlign: 'right' }}>
+                        <td className="pkg-cell-actions">
                           <button
-                            className="btn btn-xs btn-primary"
+                            className="btn btn-xs btn-primary pkg-action-btn"
                             onClick={() => setPendingAction({ type: 'upgrade', package: p.name })}
                           >
-                            <ArrowUpCircle size={13} style={{ marginRight: '4px' }} />
+                            <ArrowUpCircle size={13} />
                             <span>Upgrade</span>
                           </button>
                         </td>
@@ -344,30 +348,36 @@ export const PackagesPage: React.FC = () => {
                   )
                 ) : activeTab === 'installed' ? (
                   filteredInstalled.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
+                    <tr className="pkg-empty-row">
+                      <td colSpan={5} className="pkg-empty-state">
                         No installed packages matching query.
                       </td>
                     </tr>
                   ) : (
                     filteredInstalled.map((p) => (
-                      <tr key={p.name}>
-                        <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{p.name}</td>
-                        <td className="font-mono">{p.version || 'installed'}</td>
-                        <td className="font-mono" style={{ color: 'var(--text-muted)' }}>
-                          —
+                      <tr key={p.name} className="pkg-row pkg-row-installed">
+                        <td className="pkg-cell-name">
+                          <Package size={14} className="pkg-name-icon" />
+                          <span className="pkg-name-text">{p.name}</span>
                         </td>
-                        <td style={{ color: 'var(--text-secondary)', fontSize: '0.82rem' }}>
+                        <td className="pkg-cell-current font-mono">
+                          <span className="pkg-ver-label">Installed:</span>
+                          <span className="pkg-ver-cur-val">{p.version || 'installed'}</span>
+                        </td>
+                        <td className="pkg-cell-target font-mono">
+                          <span className="pkg-target-dash">—</span>
+                        </td>
+                        <td className={`pkg-cell-desc ${!p.description ? 'pkg-desc-empty' : ''}`}>
                           {p.description || '—'}
                         </td>
-                        <td style={{ textAlign: 'right' }}>
+                        <td className="pkg-cell-actions">
                           <button
-                            className="btn btn-xs btn-ghost"
-                            style={{ color: '#f87171' }}
+                            className="btn btn-xs btn-ghost pkg-remove-btn"
                             title="Remove Package"
                             onClick={() => setPendingAction({ type: 'remove', package: p.name })}
                           >
                             <Trash2 size={13} />
+                            <span className="pkg-remove-label">Remove</span>
                           </button>
                         </td>
                       </tr>
@@ -375,30 +385,35 @@ export const PackagesPage: React.FC = () => {
                   )
                 ) : (
                   searchResults.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
+                    <tr className="pkg-empty-row">
+                      <td colSpan={5} className="pkg-empty-state">
                         Search packages from online repositories above.
                       </td>
                     </tr>
                   ) : (
                     searchResults.map((p) => (
-                      <tr key={p.name}>
-                        <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{p.name}</td>
-                        <td className="font-mono" style={{ color: 'var(--text-muted)' }}>
-                          {p.installed ? p.version || 'installed' : 'Not installed'}
+                      <tr key={p.name} className="pkg-row pkg-row-search">
+                        <td className="pkg-cell-name">
+                          <Package size={14} className="pkg-name-icon" />
+                          <span className="pkg-name-text">{p.name}</span>
                         </td>
-                        <td className="font-mono" style={{ color: 'var(--green)' }}>
-                          {p.new_version || p.version || 'Available'}
+                        <td className="pkg-cell-current font-mono">
+                          <span className="pkg-ver-label">Status:</span>
+                          <span className="pkg-ver-cur-val">{p.installed ? p.version || 'installed' : 'Not installed'}</span>
                         </td>
-                        <td style={{ color: 'var(--text-secondary)', fontSize: '0.82rem' }}>
+                        <td className="pkg-cell-target font-mono">
+                          <span className="pkg-ver-label">Available:</span>
+                          <span className="pkg-ver-target-val pkg-avail-val">{p.new_version || p.version || 'Available'}</span>
+                        </td>
+                        <td className={`pkg-cell-desc ${!p.description ? 'pkg-desc-empty' : ''}`}>
                           {p.description || '—'}
                         </td>
-                        <td style={{ textAlign: 'right' }}>
+                        <td className="pkg-cell-actions">
                           <button
-                            className="btn btn-xs btn-primary"
+                            className="btn btn-xs btn-primary pkg-action-btn"
                             onClick={() => setPendingAction({ type: 'install', package: p.name })}
                           >
-                            <Download size={13} style={{ marginRight: '4px' }} />
+                            <Download size={13} />
                             <span>Install</span>
                           </button>
                         </td>
