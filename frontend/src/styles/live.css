@@ -2680,6 +2680,34 @@
 }
 
 /* Connectivity Health Cards */
+.health-checks-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.health-checks-title-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.health-checks-title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.health-test-all-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+}
+
 .health-checks-list {
     display: flex;
     flex-direction: column;
@@ -2694,7 +2722,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    gap: 12px;
     transition: var(--transition);
 }
 
@@ -2705,9 +2733,34 @@
 .health-card-left {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     min-width: 0;
     flex: 1 1 auto;
+}
+
+.health-card-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.health-card-icon.icon-accent {
+    background: var(--accent-dim);
+    color: var(--accent);
+}
+
+.health-card-icon.icon-purple {
+    background: var(--purple-dim);
+    color: var(--purple);
+}
+
+.health-card-icon.icon-blue {
+    background: var(--blue-dim);
+    color: var(--blue);
 }
 
 .health-card-info {
@@ -2716,23 +2769,66 @@
 }
 
 .health-card-title {
-    font-size: 12.5px;
-    font-weight: 700;
-    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
     color: var(--text-primary);
-    word-break: break-word;
-    overflow-wrap: anywhere;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    line-height: 1.35;
+}
+
+.health-card-target {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 1px 6px;
+    border-radius: 4px;
+    word-break: break-all;
+    display: inline-flex;
+    align-items: center;
+}
+
+.health-target-accent {
+    color: var(--accent);
+    background: rgba(6, 182, 212, 0.08);
+    border: 1px solid rgba(6, 182, 212, 0.2);
+}
+
+.health-target-purple {
+    color: var(--purple);
+    background: rgba(168, 85, 247, 0.08);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+}
+
+.health-target-blue {
+    color: var(--blue);
+    background: rgba(59, 130, 246, 0.08);
+    border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
 .health-card-sub {
-    font-size: 11px;
+    font-size: 11.5px;
     color: var(--text-secondary);
-    margin-top: 2px;
+    margin-top: 3px;
+    line-height: 1.4;
     word-break: break-word;
 }
 
-.health-card-badge {
+.health-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     flex-shrink: 0;
+}
+
+.health-card-test-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    font-size: 11px;
 }
 
 /* Diagnostic Inputs & Presets */
@@ -2774,6 +2870,33 @@
     color: var(--accent);
 }
 
+.preset-chip.active {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 600;
+}
+
+/* Ping Tool Styles */
+.ping-tool-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.ping-tool-title-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ping-tool-title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
 /* Ping Controls */
 .ping-controls-wrap {
     display: flex;
@@ -2804,7 +2927,51 @@
     gap: 4px;
 }
 
-/* Ping Results Grid */
+/* Ping Results Card & Grid */
+.ping-result-card {
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    margin-top: 14px;
+}
+
+.ping-result-success {
+    background: rgba(16, 185, 129, 0.06);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.ping-result-error {
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.ping-result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.ping-result-title {
+    color: var(--green);
+    font-size: 0.88rem;
+    margin: 0;
+    word-break: break-all;
+}
+
+.ping-error-title {
+    color: var(--red);
+    font-size: 0.88rem;
+    margin: 0 0 6px 0;
+}
+
+.ping-error-desc {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
 .ping-results-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(85px, 1fr));
@@ -2832,6 +2999,36 @@
     font-weight: 700;
     font-family: 'JetBrains Mono', monospace;
     color: var(--text-primary);
+}
+
+.ping-stat-box .val.val-good {
+    color: var(--green);
+}
+
+.ping-stat-box .val.val-warn {
+    color: var(--yellow);
+}
+
+.ping-raw-details {
+    margin-top: 10px;
+    font-size: 11px;
+}
+
+.ping-raw-summary {
+    cursor: pointer;
+    color: var(--text-muted);
+    font-weight: 500;
+    user-select: none;
+}
+
+.ping-raw-summary:hover {
+    color: var(--text-secondary);
+}
+
+.ping-empty-state {
+    margin-top: 12px;
+    font-size: 0.82rem;
+    color: var(--text-muted);
 }
 
 .terminal-box {
@@ -3052,6 +3249,33 @@
     }
     .nearby-freq-text {
         font-size: 10.5px;
+    }
+
+    /* Connectivity Tab Responsive Adjustments (640px) */
+    .health-card {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        padding: 12px;
+    }
+    .health-card-left {
+        width: 100%;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    .health-card-info {
+        flex: 1;
+        min-width: 0;
+    }
+    .health-card-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding-top: 8px;
+        border-top: 1px solid var(--border-subtle);
+        margin-top: 2px;
     }
 }
 
@@ -3283,6 +3507,54 @@
     .wifi-disconnected-note {
         padding: 16px 0;
         font-size: 0.82rem;
+    }
+
+    /* Connectivity Tab Phone Adjustments (600px) */
+    .dns-layout .card {
+        padding: 14px;
+        border-radius: var(--radius-md);
+    }
+    .health-checks-header {
+        margin-bottom: 12px;
+    }
+    .health-card-icon {
+        width: 30px;
+        height: 30px;
+        margin-top: 1px;
+    }
+    .health-card-title {
+        font-size: 12.5px;
+        gap: 5px;
+    }
+    .health-card-target {
+        font-size: 10.5px;
+        padding: 1px 5px;
+    }
+    .health-card-sub {
+        font-size: 11px;
+        margin-top: 3px;
+    }
+    .health-card-test-btn {
+        padding: 4px 10px;
+        font-size: 11px;
+    }
+    .presets-row {
+        gap: 5px;
+        margin-bottom: 12px;
+    }
+    .preset-chip {
+        padding: 4px 9px;
+        font-size: 10.5px;
+    }
+    .ping-results-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    .ping-stat-box {
+        padding: 9px 8px;
+    }
+    .ping-stat-box .val {
+        font-size: 13px;
     }
 }
 

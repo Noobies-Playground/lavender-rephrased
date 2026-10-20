@@ -269,4 +269,39 @@ describe('NetworkPage', () => {
     expect(screen.getByText('wlan0')).toBeInTheDocument();
     expect(screen.queryByText('eth0')).not.toBeInTheDocument();
   });
+
+  it('renders health checks and runs probes in Connectivity tab', async () => {
+    (api.get as ReturnType<typeof vi.fn>).mockImplementation((url: string) => {
+      if (url.includes('/ping')) {
+        return Promise.resolve({
+          target: '192.168.1.1',
+          avg_latency: 3.4,
+          avg_latency_ms: 3.4,
+          success: true,
+        });
+      }
+      return Promise.resolve(mockNetworkData);
+    });
+
+    render(
+      <ToastProvider>
+        <MemoryRouter>
+          <NetworkPage />
+        </MemoryRouter>
+      </ToastProvider>
+    );
+
+    await screen.findByText('eth0');
+
+    // Switch to Connectivity Tab
+    const connTabBtn = screen.getByRole('button', { name: /Connectivity/i });
+    act(() => {
+      fireEvent.click(connTabBtn);
+    });
+
+    expect(await screen.findByText('Network Health Checks')).toBeInTheDocument();
+    expect(screen.getByText('Default Gateway')).toBeInTheDocument();
+    expect(screen.getByText('DNS Resolution')).toBeInTheDocument();
+    expect(screen.getByText('Internet Connectivity')).toBeInTheDocument();
+  });
 });

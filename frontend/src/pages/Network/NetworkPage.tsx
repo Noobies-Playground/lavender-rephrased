@@ -1533,22 +1533,18 @@ export const NetworkPage: React.FC = () => {
           TAB 4: CONNECTIVITY & HEALTH
          ══════════════════════════════════════════════════════════════ */}
       {activeTab === 'connectivity' && (
-        <div className="dns-layout">
+        <div className="dns-layout connectivity-tab-container">
           {/* Health Checks Probes Card */}
-          <div className="card">
-            <div
-              className="card-header"
-              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="card health-checks-card">
+            <div className="card-header health-checks-header">
+              <div className="health-checks-title-group">
                 <ShieldCheck size={18} color="#34d399" />
-                <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 600 }}>Network Health Checks</h3>
+                <h3 className="health-checks-title">Network Health Checks</h3>
               </div>
               <button
-                className="btn btn-sm btn-primary"
+                className="btn btn-sm btn-primary health-test-all-btn"
                 onClick={runAllHealthChecks}
                 disabled={healthTestingAll}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}
               >
                 <RefreshCw size={12} className={healthTestingAll ? 'animate-spin' : ''} />
                 <span>Test All</span>
@@ -1560,17 +1556,18 @@ export const NetworkPage: React.FC = () => {
                 {/* 1. Default Gateway Probe */}
                 <div className="health-card">
                   <div className="health-card-left">
-                    <div className="iface-icon" style={{ background: 'var(--accent-dim)', color: 'var(--accent)' }}>
+                    <div className="health-card-icon icon-accent">
                       <Server size={16} />
                     </div>
                     <div className="health-card-info">
                       <div className="health-card-title">
-                        Default Gateway <span style={{ color: 'var(--accent)' }}>({defaultGateway})</span>
+                        <span>Default Gateway</span>
+                        <span className="health-card-target health-target-accent">{defaultGateway}</span>
                       </div>
                       <div className="health-card-sub">{healthChecks.gateway.message}</div>
                     </div>
                   </div>
-                  <div className="health-card-badge" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div className="health-card-actions">
                     <span
                       className={`badge ${
                         healthChecks.gateway.status === 'success'
@@ -1583,11 +1580,12 @@ export const NetworkPage: React.FC = () => {
                       {healthChecks.gateway.badge}
                     </span>
                     <button
-                      className="btn btn-xs btn-ghost"
+                      className="btn btn-xs btn-ghost health-card-test-btn"
                       onClick={runGatewayProbe}
                       disabled={healthChecks.gateway.status === 'testing'}
                     >
-                      Test
+                      <RefreshCw size={11} className={healthChecks.gateway.status === 'testing' ? 'animate-spin' : ''} />
+                      <span>{healthChecks.gateway.status === 'testing' ? 'Testing…' : 'Test'}</span>
                     </button>
                   </div>
                 </div>
@@ -1595,17 +1593,18 @@ export const NetworkPage: React.FC = () => {
                 {/* 2. DNS Resolution Probe */}
                 <div className="health-card">
                   <div className="health-card-left">
-                    <div className="iface-icon" style={{ background: 'var(--purple-dim)', color: 'var(--purple)' }}>
+                    <div className="health-card-icon icon-purple">
                       <Globe size={16} />
                     </div>
                     <div className="health-card-info">
                       <div className="health-card-title">
-                        DNS Resolution <span style={{ color: 'var(--text-secondary)' }}>(google.com)</span>
+                        <span>DNS Resolution</span>
+                        <span className="health-card-target health-target-purple">google.com</span>
                       </div>
                       <div className="health-card-sub">{healthChecks.dns.message}</div>
                     </div>
                   </div>
-                  <div className="health-card-badge" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div className="health-card-actions">
                     <span
                       className={`badge ${
                         healthChecks.dns.status === 'success'
@@ -1618,11 +1617,12 @@ export const NetworkPage: React.FC = () => {
                       {healthChecks.dns.badge}
                     </span>
                     <button
-                      className="btn btn-xs btn-ghost"
+                      className="btn btn-xs btn-ghost health-card-test-btn"
                       onClick={runDnsProbe}
                       disabled={healthChecks.dns.status === 'testing'}
                     >
-                      Test
+                      <RefreshCw size={11} className={healthChecks.dns.status === 'testing' ? 'animate-spin' : ''} />
+                      <span>{healthChecks.dns.status === 'testing' ? 'Testing…' : 'Test'}</span>
                     </button>
                   </div>
                 </div>
@@ -1630,17 +1630,18 @@ export const NetworkPage: React.FC = () => {
                 {/* 3. Internet Connectivity Probe */}
                 <div className="health-card">
                   <div className="health-card-left">
-                    <div className="iface-icon" style={{ background: 'var(--blue-dim)', color: 'var(--blue)' }}>
+                    <div className="health-card-icon icon-blue">
                       <Activity size={16} />
                     </div>
                     <div className="health-card-info">
                       <div className="health-card-title">
-                        Internet Connectivity <span style={{ color: 'var(--accent)' }}>(1.1.1.1)</span>
+                        <span>Internet Connectivity</span>
+                        <span className="health-card-target health-target-blue">1.1.1.1</span>
                       </div>
                       <div className="health-card-sub">{healthChecks.internet.message}</div>
                     </div>
                   </div>
-                  <div className="health-card-badge" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div className="health-card-actions">
                     <span
                       className={`badge ${
                         healthChecks.internet.status === 'success'
@@ -1653,11 +1654,12 @@ export const NetworkPage: React.FC = () => {
                       {healthChecks.internet.badge}
                     </span>
                     <button
-                      className="btn btn-xs btn-ghost"
+                      className="btn btn-xs btn-ghost health-card-test-btn"
                       onClick={runInternetProbe}
                       disabled={healthChecks.internet.status === 'testing'}
                     >
-                      Test
+                      <RefreshCw size={11} className={healthChecks.internet.status === 'testing' ? 'animate-spin' : ''} />
+                      <span>{healthChecks.internet.status === 'testing' ? 'Testing…' : 'Test'}</span>
                     </button>
                   </div>
                 </div>
@@ -1666,11 +1668,11 @@ export const NetworkPage: React.FC = () => {
           </div>
 
           {/* Interactive Ping Diagnostic Tool Card */}
-          <div className="card">
-            <div className="card-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="card ping-diagnostic-card">
+            <div className="card-header ping-tool-header">
+              <div className="ping-tool-title-group">
                 <Activity size={18} color="var(--accent)" />
-                <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 600 }}>Ping Diagnostic Tool</h3>
+                <h3 className="ping-tool-title">Ping Diagnostic Tool</h3>
               </div>
             </div>
 
@@ -1680,28 +1682,32 @@ export const NetworkPage: React.FC = () => {
                 <span className="presets-label">Target Presets:</span>
                 <button
                   type="button"
-                  className="preset-chip"
+                  className={`preset-chip ${
+                    pingTarget === (summary?.default_gateway || '192.168.1.1') || pingTarget === 'gateway'
+                      ? 'active'
+                      : ''
+                  }`}
                   onClick={() => handleSetPingPreset('gateway')}
                 >
                   Gateway
                 </button>
                 <button
                   type="button"
-                  className="preset-chip"
+                  className={`preset-chip ${pingTarget === '1.1.1.1' ? 'active' : ''}`}
                   onClick={() => handleSetPingPreset('1.1.1.1')}
                 >
                   1.1.1.1 (Cloudflare)
                 </button>
                 <button
                   type="button"
-                  className="preset-chip"
+                  className={`preset-chip ${pingTarget === '8.8.8.8' ? 'active' : ''}`}
                   onClick={() => handleSetPingPreset('8.8.8.8')}
                 >
                   8.8.8.8 (Google)
                 </button>
                 <button
                   type="button"
-                  className="preset-chip"
+                  className={`preset-chip ${pingTarget === '9.9.9.9' ? 'active' : ''}`}
                   onClick={() => handleSetPingPreset('9.9.9.9')}
                 >
                   9.9.9.9 (Quad9)
@@ -1734,7 +1740,7 @@ export const NetworkPage: React.FC = () => {
                     className="btn btn-primary ping-submit-btn"
                     disabled={pingLoading || !pingTarget.trim()}
                   >
-                    <Activity size={12} />
+                    <Activity size={12} className={pingLoading ? 'animate-pulse' : ''} />
                     <span>{pingLoading ? 'Pinging…' : 'Ping'}</span>
                   </button>
                 </div>
@@ -1743,26 +1749,9 @@ export const NetworkPage: React.FC = () => {
               {/* Ping Result */}
               {pingResult ? (
                 pingResult.success ? (
-                  <div
-                    style={{
-                      background: 'rgba(16, 185, 129, 0.06)',
-                      border: '1px solid rgba(16, 185, 129, 0.3)',
-                      borderRadius: 'var(--radius-sm)',
-                      padding: '12px 14px',
-                      marginTop: '12px',
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        flexWrap: 'wrap',
-                        gap: '6px',
-                        marginBottom: '10px',
-                      }}
-                    >
-                      <h4 style={{ color: 'var(--green)', fontSize: '0.88rem', margin: 0, wordBreak: 'break-all' }}>
+                  <div className="ping-result-card ping-result-success">
+                    <div className="ping-result-header">
+                      <h4 className="ping-result-title">
                         ✓ Reply from {pingResult.target}
                       </h4>
                       <span
@@ -1781,13 +1770,11 @@ export const NetworkPage: React.FC = () => {
                       <div className="ping-stat-box">
                         <div className="label">Avg Latency</div>
                         <div
-                          className="val"
-                          style={{
-                            color:
-                              (pingResult.avg_latency ?? pingResult.avg_latency_ms ?? 0) < 50
-                                ? 'var(--green)'
-                                : 'var(--yellow)',
-                          }}
+                          className={`val ${
+                            (pingResult.avg_latency ?? pingResult.avg_latency_ms ?? 0) < 50
+                              ? 'val-good'
+                              : 'val-warn'
+                          }`}
                         >
                           {pingResult.avg_latency !== undefined && pingResult.avg_latency !== null
                             ? `${pingResult.avg_latency.toFixed(1)} ms`
@@ -1825,8 +1812,8 @@ export const NetworkPage: React.FC = () => {
 
                     {/* Collapsible raw output */}
                     {pingResult.output && (
-                      <details style={{ marginTop: '10px', fontSize: '11px' }}>
-                        <summary style={{ cursor: 'pointer', color: 'var(--text-muted)' }}>
+                      <details className="ping-raw-details">
+                        <summary className="ping-raw-summary">
                           Raw Output Details
                         </summary>
                         <div className="terminal-box">{pingResult.output}</div>
@@ -1834,30 +1821,22 @@ export const NetworkPage: React.FC = () => {
                     )}
                   </div>
                 ) : (
-                  <div
-                    style={{
-                      background: 'rgba(239, 68, 68, 0.08)',
-                      border: '1px solid rgba(239, 68, 68, 0.3)',
-                      borderRadius: 'var(--radius-sm)',
-                      padding: '12px 14px',
-                      marginTop: '12px',
-                    }}
-                  >
-                    <h4 style={{ color: 'var(--red)', fontSize: '0.88rem', margin: '0 0 6px 0' }}>
+                  <div className="ping-result-card ping-result-error">
+                    <h4 className="ping-error-title">
                       ✗ Ping Failed
                     </h4>
-                    <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: 0 }}>
+                    <p className="ping-error-desc">
                       Could not reach <span className="font-mono">{pingResult.target}</span>.
                     </p>
                     {pingResult.output && (
-                      <div className="terminal-box" style={{ marginTop: '8px' }}>
+                      <div className="terminal-box">
                         {pingResult.output}
                       </div>
                     )}
                   </div>
                 )
               ) : (
-                <div style={{ marginTop: '12px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                <div className="ping-empty-state">
                   Enter an IP or choose a preset to test latency and packet loss.
                 </div>
               )}
