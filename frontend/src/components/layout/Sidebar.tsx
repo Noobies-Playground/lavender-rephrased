@@ -138,7 +138,7 @@ export const Sidebar: React.FC = () => {
           className="btn btn-ghost btn-icon"
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          style={{ color: 'var(--text-secondary)', padding: '6px' }}
+          style={{ color: 'var(--text-secondary)', padding: collapsed ? '6px 4px' : '6px' }}
         >
           {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
         </button>
@@ -148,7 +148,7 @@ export const Sidebar: React.FC = () => {
       <nav
         style={{
           flex: 1,
-          padding: '16px 10px',
+          padding: collapsed ? '12px 5px' : '16px 10px',
           display: 'flex',
           flexDirection: 'column',
           gap: '4px',
@@ -169,7 +169,7 @@ export const Sidebar: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '12px',
-                padding: collapsed ? '10px 0' : '10px 14px',
+                padding: collapsed ? '9px 0' : '10px 14px',
                 justifyContent: collapsed ? 'center' : 'flex-start',
                 borderRadius: 'var(--radius-md)',
                 color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
@@ -194,7 +194,7 @@ export const Sidebar: React.FC = () => {
       <div
         className="sidebar-footer"
         style={{
-          padding: '12px 16px',
+          padding: collapsed ? '12px 4px' : '12px 16px',
           borderTop: '1px solid var(--border-subtle)',
           display: 'flex',
           flexDirection: 'column',
@@ -206,7 +206,11 @@ export const Sidebar: React.FC = () => {
       >
         <span
           className="badge badge-lavender"
-          style={{ fontSize: '0.7rem', padding: '2px 6px' }}
+          style={{
+            fontSize: collapsed ? '0.68rem' : '0.7rem',
+            padding: collapsed ? '2px 4px' : '2px 6px',
+            whiteSpace: 'nowrap',
+          }}
         >
           v0.4.0
         </span>

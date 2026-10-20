@@ -56,7 +56,6 @@ export const AppShell: React.FC = () => {
           className={`dashboard-content ${location.pathname === '/' ? 'dashboard-content-overview' : ''}`}
           style={{
             flex: 1,
-            padding: location.pathname === '/' ? '10px 16px 12px' : '16px 20px',
             width: '100%',
             maxWidth: '100%',
             boxSizing: 'border-box',

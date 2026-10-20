@@ -1272,8 +1272,25 @@ select option:checked {
   box-shadow: 0 0 6px rgba(245, 158, 11, 0.4);
 }
 
+/* ===== Responsive Main Content Area ===== */
+.dashboard-content {
+  padding: 16px 20px;
+}
+
+.dashboard-content.dashboard-content-overview {
+  padding: 10px 16px 12px;
+}
+
 /* ===== Responsive Topbar (Phone Layout) ===== */
 @media (max-width: 768px) {
+  .dashboard-content {
+    padding: 12px 10px 16px !important;
+  }
+
+  .dashboard-content.dashboard-content-overview {
+    padding: 10px 10px 12px !important;
+  }
+
   .topbar {
     padding: 0 12px !important;
   }
@@ -1290,6 +1307,14 @@ select option:checked {
 }
 
 @media (max-width: 480px) {
+  .dashboard-content {
+    padding: 10px 8px 14px !important;
+  }
+
+  .dashboard-content.dashboard-content-overview {
+    padding: 8px 8px 10px !important;
+  }
+
   .user-chip {
     padding: 3px 6px !important;
     gap: 5px !important;
@@ -1297,6 +1322,12 @@ select option:checked {
 }
 
 /* ===== Services Page Responsive & Interactive Styles ===== */
+.services-page-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 .services-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -1412,6 +1443,22 @@ select option:checked {
 
 /* Phone Layout for Services Page */
 @media (max-width: 768px) {
+  .services-page-wrap {
+    gap: 12px;
+  }
+
+  /* Services Card: Remove bulky padding on mobile so table rows run edge-to-edge */
+  .services-card {
+    padding: 0 !important;
+    border-radius: var(--radius-md) !important;
+  }
+
+  .services-card .card-header {
+    padding: 12px 16px 10px !important;
+    margin-bottom: 0 !important;
+    border-bottom: 1px solid var(--border-subtle) !important;
+  }
+
   /* Toolbar: Full-width search + balanced 2x2 grid */
   .services-toolbar {
     flex-direction: column;
@@ -1485,7 +1532,7 @@ select option:checked {
     width: 100% !important;
   }
 
-  /* Service row: Expanded height, 2-tier organized card layout */
+  /* Service row: Expanded height, 2-tier organized card layout with tight side padding */
   .services-table .service-row {
     display: grid !important;
     grid-template-columns: 1fr auto !important;
@@ -1494,8 +1541,8 @@ select option:checked {
       "name name"
       "status actions" !important;
     align-items: center !important;
-    gap: 8px 12px !important;
-    padding: 14px 16px !important;
+    gap: 6px 10px !important;
+    padding: 11px 16px !important;
     border-bottom: 1px solid var(--border-subtle) !important;
     transition: background 0.15s ease !important;
     cursor: pointer !important;
@@ -1528,7 +1575,7 @@ select option:checked {
   }
 
   .services-table .svc-name {
-    font-size: 14px !important;
+    font-size: 13px !important;
     font-weight: 600 !important;
     color: var(--text-primary) !important;
     display: block !important;
@@ -1557,8 +1604,8 @@ select option:checked {
     grid-area: status !important;
     display: flex !important;
     align-items: center !important;
-    gap: 8px !important;
-    flex-wrap: wrap !important;
+    gap: 6px !important;
+    flex-wrap: nowrap !important;
     min-width: 0 !important;
     overflow: hidden !important;
   }
@@ -1566,19 +1613,24 @@ select option:checked {
   .services-table .svc-status-pill {
     padding: 0 !important;
     font-size: 11.5px !important;
+    flex-shrink: 0 !important;
   }
 
   .services-table .svc-mobile-badge {
     display: inline-flex !important;
     font-size: 10px !important;
-    padding: 2px 7px !important;
+    padding: 2px 6px !important;
     border-radius: var(--radius-sm, 4px) !important;
+    flex-shrink: 0 !important;
   }
 
   .services-table .svc-mobile-sub {
     display: inline-block !important;
     font-size: 11.5px !important;
     color: var(--text-secondary) !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
   }
 
   /* Row 2, Right: Logs button */
@@ -1587,13 +1639,14 @@ select option:checked {
     display: flex !important;
     align-items: center !important;
     justify-content: flex-end !important;
+    flex-shrink: 0 !important;
   }
 
   .services-table .svc-logs-btn {
-    padding: 5px 12px !important;
-    font-size: 11.5px !important;
+    padding: 4px 10px !important;
+    font-size: 11px !important;
     border-radius: 6px !important;
-    min-height: 28px !important;
+    min-height: 26px !important;
   }
 
   /* Pagination Bar on phone layout */
@@ -1601,7 +1654,7 @@ select option:checked {
     flex-direction: column !important;
     gap: 10px !important;
     align-items: center !important;
-    padding: 12px 14px !important;
+    padding: 10px 12px !important;
     text-align: center !important;
   }
 
@@ -1808,6 +1861,17 @@ select option:checked {
   .service-logs-modal .svc-foot-right {
     flex: 1 1 0 !important;
     width: auto !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .services-card .card-header {
+    padding: 11px 14px 9px !important;
+  }
+
+  .services-table .service-row {
+    padding: 10px 14px !important;
+    gap: 5px 8px !important;
   }
 }
 

@@ -228,7 +228,7 @@ export const ServicesPage: React.FC = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div className="services-page-wrap">
       {/* ── Toolbar ────────────────────────────────────────────── */}
       <div className="toolbar services-toolbar">
         <div className="services-search-wrap">
@@ -393,7 +393,7 @@ export const ServicesPage: React.FC = () => {
                       >
                         <td className="svc-col-name">
                           <div className="svc-name-group">
-                            <span className="mono svc-name">{name}</span>
+                            <span className="mono svc-name" title={name}>{name}</span>
                             {s.description && (
                               <span className="svc-desc">{s.description}</span>
                             )}
