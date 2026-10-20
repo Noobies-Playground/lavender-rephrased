@@ -2158,6 +2158,42 @@
 }
 
 /* WiFi Tab Components */
+.wifi-tab-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.wifi-disabled-card {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.wifi-disabled-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--red);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px auto;
+}
+
+.wifi-disabled-title {
+    margin: 0 0 6px 0;
+    font-size: 1.2rem;
+    color: var(--text-primary);
+}
+
+.wifi-disabled-desc {
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+    max-width: 440px;
+    margin: 0 auto;
+}
+
 .wifi-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
@@ -2177,7 +2213,17 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+    gap: 12px;
     margin-bottom: 16px;
+}
+
+.wifi-hero-title {
+    flex: 1;
+    min-width: 0;
+}
+
+.wifi-hero-title .net-metric-label {
+    margin-bottom: 4px;
 }
 
 .wifi-hero-title h3 {
@@ -2188,6 +2234,22 @@
     align-items: center;
     gap: 8px;
     margin: 0;
+    min-width: 0;
+}
+
+.wifi-hero-icon {
+    flex-shrink: 0;
+}
+
+.wifi-hero-ssid {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+.wifi-hero-status {
+    flex-shrink: 0;
 }
 
 .wifi-signal-meter {
@@ -2200,6 +2262,27 @@
     align-items: center;
     justify-content: space-between;
     gap: 16px;
+}
+
+.wifi-signal-stat {
+    min-width: 65px;
+}
+
+.wifi-signal-label {
+    font-size: 10.5px;
+    color: var(--text-muted);
+    display: block;
+    letter-spacing: 0.04em;
+}
+
+.wifi-signal-level {
+    text-align: right;
+    min-width: 50px;
+}
+
+.wifi-signal-level-val {
+    font-size: 12.5px;
+    color: var(--text-secondary);
 }
 
 .signal-bar-track {
@@ -2255,6 +2338,8 @@
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
     padding: 8px 12px;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .wifi-spec-box .label {
@@ -2271,12 +2356,130 @@
     font-family: 'JetBrains Mono', monospace;
     color: var(--text-primary);
     margin-top: 2px;
+    word-break: break-all;
+}
+
+.wifi-spec-bssid {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.wifi-bssid-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.wifi-extra-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+}
+
+.wifi-extra-badge {
+    font-size: 11px;
+}
+
+.wifi-disconnected-note {
+    padding: 24px 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* Scanner Header & Controls */
+.wifi-scanner-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.wifi-scanner-title-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.wifi-scanner-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.wifi-scanner-title h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
+.wifi-network-count {
+    font-size: 11px;
+    padding: 2px 7px;
+}
+
+.wifi-scanner-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.wifi-search-wrap {
+    position: relative;
+    width: 160px;
+}
+
+.wifi-search-icon {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.wifi-search-input {
+    padding-left: 28px;
+    height: 30px;
+    font-size: 0.78rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.wifi-scan-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.wifi-scanner-empty {
+    padding: 36px 16px;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.wifi-empty-icon {
+    margin: 0 auto 8px auto;
+    opacity: 0.5;
+}
+
+.wifi-scanner-empty p {
+    margin: 0;
+    font-size: 0.88rem;
 }
 
 /* Nearby Networks Table */
 .nearby-table-wrap {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     max-height: 440px;
+    padding: 0 !important;
 }
 
 .nearby-table {
@@ -2294,6 +2497,7 @@
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    background: rgba(0, 0, 0, 0.15);
 }
 
 .nearby-table td {
@@ -2309,6 +2513,50 @@
 .nearby-table tr.current-net td {
     background: rgba(6, 182, 212, 0.07);
     color: var(--text-primary);
+}
+
+.nearby-ssid-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.nearby-ssid-name {
+    color: var(--text-primary);
+}
+
+.nearby-connected-badge {
+    font-size: 9px;
+    padding: 1px 5px;
+}
+
+.nearby-signal-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nearby-signal-num {
+    font-size: 12px;
+}
+
+.nearby-signal-bar {
+    width: 60px;
+    height: 4px;
+}
+
+.nearby-channel-text {
+    font-size: 12px;
+}
+
+.nearby-freq-text {
+    font-size: 11px;
+}
+
+.nearby-security-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 
 /* DNS Tab Components */
@@ -2670,6 +2918,141 @@
         font-size: 11.5px;
         white-space: nowrap;
     }
+
+    /* WiFi Scanner Header & Controls Mobile */
+    .wifi-scanner-header {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    .wifi-scanner-title-group {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .wifi-scanner-controls {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        gap: 8px;
+    }
+    .wifi-search-wrap {
+        width: 100%;
+    }
+    .wifi-scan-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 7px 12px;
+    }
+
+    /* WiFi Nearby Networks Mobile Card Layout */
+    .nearby-table-wrap {
+        max-height: none;
+        overflow-x: visible;
+    }
+    .nearby-table,
+    .nearby-table tbody {
+        display: block;
+        width: 100%;
+    }
+    .nearby-table thead {
+        display: none;
+    }
+    .nearby-table tr {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        grid-template-rows: auto auto;
+        grid-template-areas:
+            "ssid security"
+            "signal channel";
+        row-gap: 8px;
+        column-gap: 10px;
+        align-items: center;
+        padding: 12px;
+        border-bottom: 1px solid var(--border-subtle);
+        background: transparent;
+        transition: background 0.15s ease;
+    }
+    .nearby-table tr:hover {
+        background: rgba(255, 255, 255, 0.02);
+    }
+    .nearby-table tr:last-child {
+        border-bottom: none;
+    }
+    .nearby-table tr.current-net {
+        background: rgba(6, 182, 212, 0.08);
+        border-left: 3px solid var(--accent);
+    }
+    .nearby-table tr.current-net td {
+        background: transparent;
+    }
+    .nearby-cell-ssid {
+        grid-area: ssid;
+        padding: 0 !important;
+        border: none !important;
+        min-width: 0;
+    }
+    .nearby-ssid-wrap {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+    }
+    .nearby-ssid-name {
+        font-size: 13.5px;
+        color: var(--text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+    }
+    .nearby-connected-badge {
+        font-size: 9px !important;
+        padding: 1px 5px !important;
+        flex-shrink: 0;
+    }
+    .nearby-cell-security {
+        grid-area: security;
+        padding: 0 !important;
+        border: none !important;
+        justify-self: end;
+    }
+    .nearby-security-wrap {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+    }
+    .nearby-cell-signal {
+        grid-area: signal;
+        padding: 0 !important;
+        border: none !important;
+        min-width: 0;
+    }
+    .nearby-signal-wrap {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .nearby-signal-num {
+        font-size: 11px;
+        width: 28px;
+    }
+    .nearby-signal-bar {
+        width: 50px;
+        height: 4px;
+    }
+    .nearby-cell-channel {
+        grid-area: channel;
+        padding: 0 !important;
+        border: none !important;
+        justify-self: end;
+        text-align: right;
+        font-size: 11px;
+    }
+    .nearby-freq-text {
+        font-size: 10.5px;
+    }
 }
 
 @media (max-width: 600px) {
@@ -2826,8 +3209,80 @@
         flex: 1;
         justify-content: center;
     }
+    /* WiFi Tab Phone Adjustments */
+    .wifi-tab-container {
+        gap: 12px;
+    }
+    .card.wifi-hero-card,
+    .wifi-hero-card {
+        padding: 12px;
+    }
+    .wifi-hero-header {
+        margin-bottom: 12px;
+        gap: 8px;
+    }
+    .wifi-hero-title h3 {
+        font-size: 15px;
+    }
+    .wifi-signal-meter {
+        padding: 10px 12px;
+        gap: 10px;
+        margin: 12px 0;
+    }
+    .wifi-signal-stat {
+        min-width: 50px;
+    }
+    .signal-numeric {
+        font-size: 13px;
+    }
+    .wifi-signal-level {
+        min-width: 45px;
+    }
+    .wifi-signal-level-val {
+        font-size: 11.5px;
+    }
     .wifi-specs-grid {
         grid-template-columns: 1fr;
+        gap: 8px;
+        margin-top: 10px;
+    }
+    .wifi-spec-box {
+        padding: 8px 10px;
+    }
+    .wifi-spec-box .val {
+        font-size: 12px;
+    }
+    .wifi-extra-badges {
+        gap: 6px;
+        margin-top: 10px;
+    }
+    .wifi-extra-badge {
+        font-size: 10.5px;
+        padding: 2px 7px;
+    }
+    .wifi-disabled-card {
+        padding: 24px 16px;
+    }
+    .wifi-disabled-icon {
+        width: 44px;
+        height: 44px;
+        margin-bottom: 12px;
+    }
+    .wifi-disabled-title {
+        font-size: 1.05rem;
+    }
+    .wifi-disabled-desc {
+        font-size: 0.82rem;
+    }
+    .card.wifi-nearby-card {
+        padding: 12px;
+    }
+    .wifi-scanner-empty {
+        padding: 24px 12px;
+    }
+    .wifi-disconnected-note {
+        padding: 16px 0;
+        font-size: 0.82rem;
     }
 }
 

@@ -979,29 +979,17 @@ export const NetworkPage: React.FC = () => {
           TAB 2: WIFI
          ══════════════════════════════════════════════════════════════ */}
       {activeTab === 'wifi' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div className="wifi-tab-container">
           {/* Wireless Hardware Check */}
           {wifiInfo?.has_hardware === false ? (
-            <div className="card" style={{ textAlign: 'center', padding: '40px 20px' }}>
-              <div
-                style={{
-                  width: '54px',
-                  height: '54px',
-                  borderRadius: '50%',
-                  background: 'rgba(239, 68, 68, 0.1)',
-                  color: 'var(--red)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 16px auto',
-                }}
-              >
+            <div className="card wifi-disabled-card">
+              <div className="wifi-disabled-icon">
                 <WifiOff size={28} />
               </div>
-              <h3 style={{ margin: '0 0 6px 0', fontSize: '1.2rem', color: 'var(--text-primary)' }}>
+              <h3 className="wifi-disabled-title">
                 No Wireless Interface Active
               </h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', maxWidth: '440px', margin: '0 auto' }}>
+              <p className="wifi-disabled-desc">
                 {wifiInfo.message || 'No WiFi interfaces found or wireless adapter is currently disabled.'}
               </p>
             </div>
@@ -1011,15 +999,15 @@ export const NetworkPage: React.FC = () => {
               <div className="wifi-hero-card">
                 <div className="wifi-hero-header">
                   <div className="wifi-hero-title">
-                    <div className="net-metric-label" style={{ marginBottom: '4px' }}>
+                    <div className="net-metric-label">
                       Connected Network
                     </div>
                     <h3>
-                      <Wifi size={22} color="var(--accent)" />
-                      <span>{wifiInfo?.connected && wifiInfo.ssid ? wifiInfo.ssid : 'Not Connected'}</span>
+                      <Wifi size={22} color="var(--accent)" className="wifi-hero-icon" />
+                      <span className="wifi-hero-ssid">{wifiInfo?.connected && wifiInfo.ssid ? wifiInfo.ssid : 'Not Connected'}</span>
                     </h3>
                   </div>
-                  <span className={`badge ${wifiInfo?.connected ? 'status-active' : 'status-inactive'}`}>
+                  <span className={`badge wifi-hero-status ${wifiInfo?.connected ? 'status-active' : 'status-inactive'}`}>
                     {wifiInfo?.connected ? 'CONNECTED' : 'DISCONNECTED'}
                   </span>
                 </div>
@@ -1028,8 +1016,8 @@ export const NetworkPage: React.FC = () => {
                   <>
                     {/* Signal Meter */}
                     <div className="wifi-signal-meter">
-                      <div style={{ minWidth: '70px' }}>
-                        <span style={{ fontSize: '10.5px', color: 'var(--text-muted)', display: 'block' }}>SIGNAL</span>
+                      <div className="wifi-signal-stat">
+                        <span className="wifi-signal-label">SIGNAL</span>
                         <span
                           className={`signal-numeric ${
                             (wifiInfo.signal_percent || 0) >= 65
@@ -1054,9 +1042,9 @@ export const NetworkPage: React.FC = () => {
                           style={{ width: `${Math.min(100, Math.max(0, wifiInfo.signal_percent || 0))}%` }}
                         />
                       </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <span style={{ fontSize: '10.5px', color: 'var(--text-muted)', display: 'block' }}>LEVEL</span>
-                        <span className="font-mono" style={{ fontSize: '12.5px', color: 'var(--text-secondary)' }}>
+                      <div className="wifi-signal-level">
+                        <span className="wifi-signal-label">LEVEL</span>
+                        <span className="font-mono wifi-signal-level-val">
                           {wifiInfo.signal_dbm || wifiInfo.quality || '—'}
                         </span>
                       </div>
@@ -1066,8 +1054,8 @@ export const NetworkPage: React.FC = () => {
                     <div className="wifi-specs-grid">
                       <div className="wifi-spec-box">
                         <span className="label">Access Point (BSSID)</span>
-                        <div className="val" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span>{wifiInfo.bssid || '—'}</span>
+                        <div className="val wifi-spec-bssid">
+                          <span className="wifi-bssid-text">{wifiInfo.bssid || '—'}</span>
                           {wifiInfo.bssid && (
                             <button
                               className="btn-copy-chip"
@@ -1101,26 +1089,25 @@ export const NetworkPage: React.FC = () => {
                     </div>
 
                     {/* Radio Extra Info Badges */}
-                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '14px' }}>
+                    <div className="wifi-extra-badges">
                       {wifiInfo.mode && (
-                        <span className="badge badge-neutral" style={{ fontSize: '11px' }}>
+                        <span className="badge badge-neutral wifi-extra-badge">
                           Mode: {wifiInfo.mode}
                         </span>
                       )}
                       {wifiInfo.tx_power && (
-                        <span className="badge badge-neutral" style={{ fontSize: '11px' }}>
+                        <span className="badge badge-neutral wifi-extra-badge">
                           Tx Power: {wifiInfo.tx_power}
                         </span>
                       )}
                       {wifiInfo.driver && (
-                        <span className="badge badge-neutral" style={{ fontSize: '11px' }}>
+                        <span className="badge badge-neutral wifi-extra-badge">
                           Driver: {wifiInfo.driver}
                         </span>
                       )}
                       {wifiInfo.rfkill_blocked !== undefined && (
                         <span
-                          className={`badge ${wifiInfo.rfkill_blocked ? 'badge-danger' : 'badge-success'}`}
-                          style={{ fontSize: '11px' }}
+                          className={`badge wifi-extra-badge ${wifiInfo.rfkill_blocked ? 'badge-danger' : 'badge-success'}`}
                         >
                           Radio: {wifiInfo.rfkill_blocked ? 'Blocked' : 'Unblocked'}
                         </span>
@@ -1128,34 +1115,34 @@ export const NetworkPage: React.FC = () => {
                     </div>
                   </>
                 ) : (
-                  <div style={{ padding: '24px 0', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                  <div className="wifi-disconnected-note">
                     Device wireless radio is ready on interface <span className="font-mono">{wifiInfo?.interface || 'wlan0'}</span> but not currently connected to an access point.
                   </div>
                 )}
               </div>
 
               {/* 2. Nearby Networks Scanner Card */}
-              <div className="card">
-                <div
-                  className="card-header"
-                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Radio size={18} color="var(--accent)" />
-                    <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 600 }}>Nearby Wi-Fi Networks</h3>
+              <div className="card wifi-nearby-card">
+                <div className="card-header wifi-scanner-header">
+                  <div className="wifi-scanner-title-group">
+                    <div className="wifi-scanner-title">
+                      <Radio size={18} color="var(--accent)" />
+                      <h3>Nearby Wi-Fi Networks</h3>
+                    </div>
+                    {displayWifiNetworks.length > 0 && (
+                      <span className="badge badge-neutral wifi-network-count">
+                        {displayWifiNetworks.length} {displayWifiNetworks.length === 1 ? 'network' : 'networks'}
+                      </span>
+                    )}
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div className="wifi-scanner-controls">
                     {/* SSID Filter */}
-                    <div style={{ position: 'relative', width: '150px' }}>
-                      <Search
-                        size={12}
-                        style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}
-                      />
+                    <div className="wifi-search-wrap">
+                      <Search size={12} className="wifi-search-icon" />
                       <input
                         type="text"
-                        className="form-input"
-                        style={{ paddingLeft: '26px', height: '30px', fontSize: '0.78rem' }}
+                        className="form-input wifi-search-input"
                         placeholder="Filter SSID…"
                         value={wifiSearch}
                         onChange={(e) => setWifiSearch(e.target.value)}
@@ -1163,10 +1150,9 @@ export const NetworkPage: React.FC = () => {
                     </div>
 
                     <button
-                      className="btn btn-sm btn-primary"
+                      className="btn btn-sm btn-primary wifi-scan-btn"
                       onClick={handleScanWifi}
                       disabled={wifiScanning}
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                     >
                       <RefreshCw size={12} className={wifiScanning ? 'animate-spin' : ''} />
                       <span>{wifiScanning ? 'Scanning airwaves…' : 'Scan Wireless Networks'}</span>
@@ -1174,11 +1160,11 @@ export const NetworkPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="card-body nearby-table-wrap" style={{ padding: 0 }}>
+                <div className="card-body nearby-table-wrap">
                   {displayWifiNetworks.length === 0 ? (
-                    <div style={{ padding: '36px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                      <Radio size={24} style={{ margin: '0 auto 8px auto', opacity: 0.5 }} />
-                      <p style={{ margin: 0 }}>
+                    <div className="wifi-scanner-empty">
+                      <Radio size={24} className="wifi-empty-icon" />
+                      <p>
                         {wifiScanning
                           ? 'Scanning airwaves for broadcast SSIDs…'
                           : 'No WiFi networks scanned yet. Click "Scan Wireless Networks" to search.'}
@@ -1199,23 +1185,20 @@ export const NetworkPage: React.FC = () => {
                           const isConnected = net.is_current || (wifiInfo?.connected && wifiInfo.ssid === net.ssid);
                           return (
                             <tr key={`${net.ssid}-${net.bssid || idx}`} className={isConnected ? 'current-net' : ''}>
-                              <td>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                  <strong style={{ color: 'var(--text-primary)' }}>{net.ssid}</strong>
+                              <td className="nearby-cell-ssid">
+                                <div className="nearby-ssid-wrap">
+                                  <strong className="nearby-ssid-name">{net.ssid || '<Hidden Network>'}</strong>
                                   {isConnected && (
-                                    <span
-                                      className="badge status-active"
-                                      style={{ fontSize: '9px', padding: '1px 5px' }}
-                                    >
+                                    <span className="badge status-active nearby-connected-badge">
                                       CONNECTED
                                     </span>
                                   )}
                                 </div>
                               </td>
-                              <td>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                  <span className="font-mono">{net.signal || 0}%</span>
-                                  <div className="progress-bar-outer" style={{ width: '60px', height: '4px' }}>
+                              <td className="nearby-cell-signal">
+                                <div className="nearby-signal-wrap">
+                                  <span className="font-mono nearby-signal-num">{net.signal || 0}%</span>
+                                  <div className="progress-bar-outer nearby-signal-bar">
                                     <div
                                       className="progress-bar-inner"
                                       style={{ width: `${Math.min(100, Math.max(0, net.signal || 0))}%` }}
@@ -1223,18 +1206,20 @@ export const NetworkPage: React.FC = () => {
                                   </div>
                                 </div>
                               </td>
-                              <td>
-                                {net.channel ? `Ch ${net.channel}` : ''}{' '}
-                                {net.frequency ? (
-                                  <span className="text-muted" style={{ fontSize: '11px' }}>
-                                    ({net.frequency})
-                                  </span>
-                                ) : (
-                                  ''
-                                )}
+                              <td className="nearby-cell-channel">
+                                <span className="nearby-channel-text">
+                                  {net.channel ? `Ch ${net.channel}` : ''}{' '}
+                                  {net.frequency ? (
+                                    <span className="text-muted nearby-freq-text">
+                                      ({net.frequency})
+                                    </span>
+                                  ) : (
+                                    ''
+                                  )}
+                                </span>
                               </td>
-                              <td>
-                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                              <td className="nearby-cell-security">
+                                <span className="nearby-security-wrap">
                                   <Lock size={11} color="var(--purple)" />
                                   <span className="badge-type">{net.security || 'WPA2/WPA3'}</span>
                                 </span>
