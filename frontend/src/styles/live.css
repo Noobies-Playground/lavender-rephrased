@@ -3695,6 +3695,9 @@
     gap: 16px;
     transition: var(--transition);
     position: relative;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .user-card:hover {
@@ -3756,8 +3759,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    min-width: 0;
 }
 
 .user-subtitle {
@@ -3765,6 +3767,9 @@
     color: var(--text-muted);
     font-family: var(--font-mono);
     margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .user-card-body {
@@ -3774,6 +3779,7 @@
     font-size: 12px;
     border-top: 1px solid var(--border-subtle);
     padding-top: 14px;
+    min-width: 0;
 }
 
 .user-info-row {
@@ -3781,18 +3787,23 @@
     justify-content: space-between;
     align-items: center;
     gap: 8px;
+    min-width: 0;
 }
 
 .user-info-label {
     color: var(--text-muted);
     font-size: 11.5px;
+    flex-shrink: 0;
 }
 
 .user-info-val {
     color: var(--text-secondary);
     font-family: var(--font-mono);
     font-size: 11.5px;
-    max-width: 230px;
+    min-width: 0;
+    flex: 1;
+    text-align: right;
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -3807,13 +3818,31 @@
     padding: 9px 12px;
     border-radius: var(--radius-sm);
     border: 1px solid var(--border-subtle);
+    min-width: 0;
 }
 
 .user-storage-header {
     display: flex;
     justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
     font-size: 11px;
     color: var(--text-secondary);
+    min-width: 0;
+}
+
+.user-storage-header .user-storage-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.user-storage-header .user-storage-stats {
+    white-space: nowrap;
+    font-family: var(--font-mono);
+    font-weight: 500;
+    flex-shrink: 0;
 }
 
 .user-storage-track {
@@ -3890,10 +3919,15 @@
 .user-card-actions {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 8px;
     border-top: 1px solid var(--border-subtle);
     padding-top: 14px;
     margin-top: auto;
+}
+
+.user-card-actions .user-action-btn-processes {
+    margin-left: auto;
 }
 
 /* Filter Pills Bar */
@@ -4092,6 +4126,308 @@
 
 .system-accounts-toggle:hover {
     opacity: 0.9;
+}
+
+.system-accounts-title-mobile {
+    display: none;
+}
+
+/* Modal Helpers for Users Page */
+.edit-groups-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 8px;
+}
+
+.ssh-modal-key-preview {
+    min-width: 0;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ==========================================================================
+   Responsive Users & Access Control Layouts (Tablet & Phone)
+   ========================================================================== */
+
+@media (max-width: 768px) {
+    .users-page {
+        gap: 14px;
+    }
+
+    .users-header-strip {
+        gap: 10px;
+        padding-bottom: 0;
+    }
+
+    .users-header-title h2 {
+        font-size: 1.18rem;
+        gap: 8px;
+    }
+
+    .users-header-title p {
+        font-size: 0.78rem;
+        line-height: 1.35;
+    }
+
+    /* Top Metric Cards: compact 2x2 grid */
+    .users-metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .users-metric-card {
+        padding: 10px 12px;
+        gap: 10px;
+        border-radius: var(--radius-md);
+    }
+
+    .users-metric-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: var(--radius-sm);
+    }
+
+    .users-metric-icon svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .users-metric-label {
+        font-size: 9.5px;
+        letter-spacing: 0.04em;
+    }
+
+    .users-metric-value {
+        font-size: 1.12rem;
+        margin: 1px 0;
+    }
+
+    .users-metric-sub {
+        font-size: 10px;
+    }
+
+    /* Tabs Bar Mobile */
+    .users-page .tabs {
+        gap: 4px;
+        margin-bottom: 12px;
+        padding-bottom: 2px;
+    }
+
+    .users-page .tab {
+        padding: 8px 12px;
+        font-size: 12px;
+        gap: 6px;
+        flex-shrink: 0;
+    }
+
+    /* User Cards Grid: single column on mobile, fitting 100% available width without horizontal overflow */
+    .user-cards-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px;
+    }
+
+    .user-card {
+        padding: 14px 12px;
+        gap: 12px;
+        border-radius: var(--radius-md);
+        min-width: 0;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .user-card-header {
+        gap: 10px;
+    }
+
+    .user-avatar-lg {
+        width: 42px;
+        height: 42px;
+        font-size: 18px;
+        border-radius: 10px;
+    }
+
+    .user-avatar-lg.user-online::after {
+        width: 12px;
+        height: 12px;
+    }
+
+    .user-name-title {
+        font-size: 15px;
+        flex-wrap: wrap;
+        gap: 6px;
+        overflow: visible;
+    }
+
+    .user-name-title .badge {
+        font-size: 9.5px !important;
+        padding: 1px 5px !important;
+    }
+
+    .user-subtitle {
+        font-size: 11px;
+    }
+
+    .user-card-body {
+        gap: 10px;
+        padding-top: 10px;
+    }
+
+    .user-info-row {
+        gap: 6px;
+    }
+
+    .user-info-label {
+        font-size: 11px;
+        flex-shrink: 0;
+    }
+
+    .user-info-val {
+        font-size: 11px;
+        max-width: 100%;
+        min-width: 0;
+        flex: 1;
+        text-align: right;
+    }
+
+    .user-storage-container {
+        padding: 8px 10px;
+        gap: 5px;
+    }
+
+    .user-storage-header {
+        font-size: 10.5px;
+        flex-wrap: wrap;
+        gap: 4px;
+        justify-content: space-between;
+    }
+
+    .user-storage-header .user-storage-stats {
+        margin-left: auto;
+    }
+
+    .user-groups-tag-container {
+        gap: 4px;
+    }
+
+    .group-tag {
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+
+    /* Actions 2x2 grid */
+    .user-card-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+        padding-top: 10px;
+    }
+
+    .user-card-actions .btn {
+        width: 100%;
+        justify-content: center;
+        margin-left: 0 !important;
+        padding: 6px 4px;
+        font-size: 11px;
+        gap: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .user-card-actions .btn span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* System & Service Accounts Drawer */
+    .system-accounts-toggle {
+        padding: 10px 12px;
+    }
+
+    .system-accounts-filter-bar {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 8px !important;
+    }
+
+    .system-accounts-search-wrap {
+        max-width: 100% !important;
+    }
+
+    /* Modals Responsive */
+    .edit-groups-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .users-metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+    }
+
+    .users-metric-card {
+        padding: 8px 10px;
+        gap: 8px;
+    }
+
+    .users-metric-icon {
+        width: 30px;
+        height: 30px;
+    }
+
+    .users-metric-icon svg {
+        width: 15px;
+        height: 15px;
+    }
+
+    .users-metric-label {
+        font-size: 9px;
+    }
+
+    .users-metric-value {
+        font-size: 1rem;
+    }
+
+    .users-metric-sub {
+        font-size: 9.5px;
+    }
+
+    .user-card {
+        padding: 12px 10px;
+    }
+
+    .user-card-actions {
+        gap: 5px;
+    }
+
+    .user-card-actions .btn {
+        padding: 5px 2px;
+        font-size: 10px;
+    }
+
+    .system-accounts-title-desktop {
+        display: none;
+    }
+
+    .system-accounts-title-mobile {
+        display: inline;
+    }
+}
+
+@media (max-width: 360px) {
+    .users-metrics-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 6px;
+    }
+
+    .user-card-actions {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }
 
 /* ==========================================================================

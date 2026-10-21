@@ -434,6 +434,24 @@ select option:checked {
   margin-top: 24px;
 }
 
+@media (max-width: 640px) {
+  .modal-overlay {
+    padding: 10px;
+  }
+  .modal-content {
+    padding: 18px 14px;
+    max-width: calc(100vw - 20px) !important;
+    border-radius: var(--radius-lg);
+  }
+  .modal-header {
+    margin-bottom: 12px;
+  }
+  .modal-footer {
+    margin-top: 18px;
+    gap: 8px;
+  }
+}
+
 /* ===== Toast Notifications ===== */
 .toast-container {
   position: fixed;

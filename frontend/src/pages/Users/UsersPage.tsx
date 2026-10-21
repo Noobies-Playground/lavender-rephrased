@@ -656,8 +656,8 @@ export const UsersPage: React.FC = () => {
                       {storage && (
                         <div className="user-storage-container">
                           <div className="user-storage-header">
-                            <span>Disk Usage ({u.home})</span>
-                            <span>
+                            <span className="user-storage-title">Disk Usage ({u.home})</span>
+                            <span className="user-storage-stats">
                               <strong>{storage.used_gb} GB</strong> / {storage.total_gb} GB ({storage.percent_used}%)
                             </span>
                           </div>
@@ -738,10 +738,10 @@ export const UsersPage: React.FC = () => {
                       </button>
 
                       <button
-                        className="btn btn-xs btn-ghost"
+                        className="btn btn-xs btn-ghost user-action-btn-processes"
                         onClick={() => navigate(`/processes?user=${encodeURIComponent(uname)}`)}
                         title="View user running processes"
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', marginLeft: 'auto' }}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                       >
                         <span>Processes</span>
                         <ExternalLink size={12} />
@@ -754,19 +754,22 @@ export const UsersPage: React.FC = () => {
           )}
 
           {/* Collapsible System & Service Accounts Drawer */}
-          <div className="card" style={{ marginTop: '10px' }}>
+          <div className="card system-accounts-card" style={{ marginTop: '10px' }}>
             <div
               className="card-header system-accounts-toggle"
               onClick={() => setIsSystemUsersOpen(!isSystemUsersOpen)}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Cpu size={16} color="var(--text-secondary)" />
-                <h3 style={{ margin: 0, fontSize: '0.95rem' }}>System & Service Accounts</h3>
-                <span className="badge badge-neutral" style={{ fontSize: '11px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                <Cpu size={16} color="var(--text-secondary)" style={{ flexShrink: 0 }} />
+                <h3 style={{ margin: 0, fontSize: '0.92rem', whiteSpace: 'nowrap' }}>
+                  <span className="system-accounts-title-desktop">System & Service Accounts</span>
+                  <span className="system-accounts-title-mobile">System Accounts</span>
+                </h3>
+                <span className="badge badge-neutral" style={{ fontSize: '11px', flexShrink: 0 }}>
                   {systemUsers.length}
                 </span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', flexShrink: 0 }}>
                 <span style={{ fontSize: '12px' }}>{isSystemUsersOpen ? 'Collapse' : 'Expand'}</span>
                 {isSystemUsersOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
               </div>
@@ -774,8 +777,8 @@ export const UsersPage: React.FC = () => {
 
             {isSystemUsersOpen && (
               <div className="card-body" style={{ paddingTop: '8px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '14px' }}>
-                  <div style={{ position: 'relative', width: '100%', maxWidth: '340px' }}>
+                <div className="system-accounts-filter-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '14px' }}>
+                  <div className="system-accounts-search-wrap" style={{ position: 'relative', width: '100%', maxWidth: '340px' }}>
                     <Search
                       size={15}
                       style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}
@@ -1433,14 +1436,10 @@ export const UsersPage: React.FC = () => {
                         }}
                       >
                         <span
-                          className="font-mono"
+                          className="font-mono ssh-modal-key-preview"
                           style={{
                             fontSize: '0.75rem',
                             color: 'var(--text-secondary)',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            maxWidth: '480px',
                           }}
                           title={rawKey}
                         >
@@ -1512,7 +1511,7 @@ export const UsersPage: React.FC = () => {
               <div style={{ fontSize: '12px', fontWeight: 600, color: '#c084fc', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Administrative Privileges
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '8px' }}>
+              <div className="edit-groups-grid">
                 {COMMON_GROUPS.filter((g) => g.cat === 'priv').map((g) => {
                   const isChecked = selectedGroupNames.includes(g.name);
                   return (
@@ -1553,7 +1552,7 @@ export const UsersPage: React.FC = () => {
               <div style={{ fontSize: '12px', fontWeight: 600, color: '#34d399', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Hardware & Subsystems
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '8px' }}>
+              <div className="edit-groups-grid">
                 {COMMON_GROUPS.filter((g) => g.cat === 'hw').map((g) => {
                   const isChecked = selectedGroupNames.includes(g.name);
                   return (
