@@ -497,7 +497,7 @@ export const ProcessesPage: React.FC = () => {
                       PID {sortBy === 'pid' && <ArrowUpDown size={11} color="var(--accent)" />}
                     </span>
                   </th>
-                  <th className="proc-col-user" style={{ width: '105px', cursor: 'pointer' }} onClick={() => handleSort('user')}>
+                  <th className="proc-col-user" style={{ width: '110px', cursor: 'pointer' }} onClick={() => handleSort('user')}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                       USER {sortBy === 'user' && <ArrowUpDown size={11} color="var(--accent)" />}
                     </span>
@@ -519,7 +519,7 @@ export const ProcessesPage: React.FC = () => {
                       COMMAND {sortBy === 'name' && <ArrowUpDown size={11} color="var(--accent)" />}
                     </span>
                   </th>
-                  <th className="proc-col-action" style={{ width: '80px', textAlign: 'right' }}>ACTION</th>
+                  <th className="proc-col-action" style={{ width: '95px', textAlign: 'right' }}>ACTION</th>
                 </tr>
               </thead>
               <tbody>
@@ -596,7 +596,7 @@ export const ProcessesPage: React.FC = () => {
                             </span>
                           </td>
                           <td className="proc-col-user">
-                            <span className={`badge ${p.user.toLowerCase() === 'root' ? 'system' : 'user'}`}>
+                            <span className={`badge ${p.user.toLowerCase() === 'root' ? 'system' : 'user'}`} title={p.user}>
                               {p.user.toUpperCase()}
                             </span>
                           </td>
@@ -650,7 +650,7 @@ export const ProcessesPage: React.FC = () => {
                                 )}
                               </div>
                               {args && (
-                                <span className="proc-cmd-args font-mono">
+                                <span className="proc-cmd-args font-mono" title={args}>
                                   {args}
                                 </span>
                               )}

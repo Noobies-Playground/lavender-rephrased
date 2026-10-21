@@ -1337,9 +1337,9 @@ select option:checked {
 
 .services-search-wrap {
   position: relative;
-  flex: 1 1 240px;
+  flex: 1 1 280px;
   min-width: 200px;
-  max-width: 380px;
+  max-width: 480px;
 }
 
 .services-search-icon {
@@ -1888,9 +1888,9 @@ select option:checked {
 
 .processes-search-wrap {
   position: relative;
-  flex: 1 1 240px;
+  flex: 1 1 280px;
   min-width: 220px;
-  max-width: 380px;
+  max-width: 480px;
 }
 
 .processes-search-icon {
@@ -1952,8 +1952,32 @@ select option:checked {
 /* Processes Table */
 .processes-table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
+}
+
+.processes-table th,
+.processes-table td {
+  overflow: hidden;
+}
+
+.processes-table .proc-col-pid    { width: 80px; }
+.processes-table .proc-col-user   { width: 110px; }
+.processes-table .proc-col-cpu    { width: 90px; }
+.processes-table .proc-col-mem    { width: 155px; }
+.processes-table .proc-col-state  { width: 95px; }
+.processes-table .proc-col-time   { width: 85px; }
+.processes-table .proc-col-cmd    { width: auto; }
+.processes-table .proc-col-action { width: 95px; text-align: right; }
+
+.processes-table .proc-col-user .badge {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .processes-table .proc-row {
@@ -2014,28 +2038,54 @@ select option:checked {
 }
 
 .proc-cmd-cell {
-  white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 440px;
+}
+
+.proc-cmd-primary {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .proc-bin-name {
   color: var(--text-primary);
   font-size: 0.86rem;
   font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .proc-bin-path {
   font-size: 11px;
   color: var(--text-muted);
-  margin-left: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .proc-cmd-args {
+  display: block;
   font-size: 11px;
   color: var(--text-muted);
-  margin-left: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  line-height: 1.35;
 }
 
 /* Metric color helpers */
@@ -2081,6 +2131,7 @@ select option:checked {
   padding: 0 !important;
   border-bottom: 1px solid var(--border-subtle) !important;
   background: rgba(15, 23, 42, 0.45) !important;
+  overflow: visible !important;
 }
 
 .proc-drawer-content {

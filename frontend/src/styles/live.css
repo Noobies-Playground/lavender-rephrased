@@ -4424,7 +4424,8 @@
 .pkg-cell-desc {
     color: var(--text-secondary);
     font-size: 0.82rem;
-    max-width: 320px;
+    max-width: 600px;
+    word-break: break-word;
 }
 
 .pkg-cell-actions {
