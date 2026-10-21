@@ -14,6 +14,7 @@ import { FilePreviewModal } from './FilePreviewModal';
 import { CreateFolderModal, CreateFileModal, RenameModal } from './FileModals';
 import {
   Folder,
+  FolderTree,
   FileCode,
   FileText,
   FileImage,
@@ -106,6 +107,19 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
 
   // Selection state
   const [selectedPaths, setSelectedPaths] = useState<Set<string>>(new Set());
+
+  // Mobile locations drawer state
+  const [mobileLocationsOpen, setMobileLocationsOpen] = useState(false);
+
+  // Close mobile drawer on Escape key
+  useEffect(() => {
+    if (!mobileLocationsOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileLocationsOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mobileLocationsOpen]);
 
   // Modals state
   const [previewFilePath, setPreviewFilePath] = useState<string | null>(null);
@@ -515,8 +529,32 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
         onChange={(e) => handleFileUpload(e.target.files)}
       />
 
+      {/* Mobile Drawer Backdrop */}
+      <div
+        className={`file-sidebar-backdrop ${mobileLocationsOpen ? 'open' : ''}`}
+        onClick={() => setMobileLocationsOpen(false)}
+        aria-hidden="true"
+      />
+
       {/* ── Left Sidebar: Drives & Places ───────────────────────── */}
-      <aside className="file-sidebar">
+      <aside className={`file-sidebar ${mobileLocationsOpen ? 'open' : ''}`}>
+        {/* Mobile Drawer Header */}
+        <div className="file-sidebar-mobile-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <HardDrive size={18} color="var(--purple)" />
+            <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>Locations & Drives</span>
+          </div>
+          <button
+            className="btn btn-xs btn-ghost"
+            onClick={() => setMobileLocationsOpen(false)}
+            title="Close locations drawer"
+            aria-label="Close locations drawer"
+            style={{ padding: '4px' }}
+          >
+            <X size={18} />
+          </button>
+        </div>
+
         {/* Pinned Places / Bookmarks */}
         <div>
           <div className="file-sidebar-section-title">
@@ -530,7 +568,10 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
                 <button
                   key={bm.path}
                   className={`file-sidebar-item ${isActive ? 'active' : ''}`}
-                  onClick={() => navigateTo(bm.path)}
+                  onClick={() => {
+                    navigateTo(bm.path);
+                    setMobileLocationsOpen(false);
+                  }}
                   title={bm.path}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
@@ -576,7 +617,10 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
                 <div
                   key={mount || idx}
                   className={`file-drive-card ${isActive ? 'active' : ''}`}
-                  onClick={() => navigateTo(mount)}
+                  onClick={() => {
+                    navigateTo(mount);
+                    setMobileLocationsOpen(false);
+                  }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0, flex: 1 }}>
@@ -673,41 +717,63 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
       <section className="file-explorer-main">
         {/* Navigation & Breadcrumbs Bar */}
         <div className="file-breadcrumbs-bar">
-          <div className="file-nav-buttons">
+          <div className="file-nav-row">
+            <div className="file-nav-buttons">
+              {/* Mobile Locations Drawer Toggle */}
+              <button
+                className="file-nav-btn file-locations-toggle-btn"
+                onClick={() => setMobileLocationsOpen(true)}
+                title="Locations & Drives"
+                aria-label="Open locations drawer"
+              >
+                <FolderTree size={15} />
+                <span className="file-locations-label">Places</span>
+              </button>
+
+              <button
+                className="file-nav-btn"
+                onClick={handleGoBack}
+                disabled={historyIdx <= 0}
+                title="Back"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <button
+                className="file-nav-btn"
+                onClick={handleGoForward}
+                disabled={historyIdx >= history.length - 1}
+                title="Forward"
+              >
+                <ChevronRight size={16} />
+              </button>
+              <button
+                className="file-nav-btn"
+                onClick={handleGoUp}
+                disabled={!fileData?.parent_path}
+                title="Up one level"
+              >
+                <CornerLeftUp size={16} />
+              </button>
+              <button
+                className="file-nav-btn"
+                onClick={() => {
+                  loadDirectory(currentPath, true);
+                  onRefreshStorage();
+                }}
+                disabled={refreshing}
+                title="Refresh"
+              >
+                <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
+              </button>
+            </div>
+
+            {/* Copy path button (on mobile row) */}
             <button
-              className="file-nav-btn"
-              onClick={handleGoBack}
-              disabled={historyIdx <= 0}
-              title="Back"
+              className="file-nav-btn file-copy-path-btn-mobile"
+              onClick={handleCopyCurrentPath}
+              title="Copy current path"
             >
-              <ChevronLeft size={16} />
-            </button>
-            <button
-              className="file-nav-btn"
-              onClick={handleGoForward}
-              disabled={historyIdx >= history.length - 1}
-              title="Forward"
-            >
-              <ChevronRight size={16} />
-            </button>
-            <button
-              className="file-nav-btn"
-              onClick={handleGoUp}
-              disabled={!fileData?.parent_path}
-              title="Up one level"
-            >
-              <CornerLeftUp size={16} />
-            </button>
-            <button
-              className="file-nav-btn"
-              onClick={() => {
-                loadDirectory(currentPath, true);
-                onRefreshStorage();
-              }}
-              disabled={refreshing}
-              title="Refresh"
-            >
-              <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
+              <Copy size={14} />
             </button>
           </div>
 
@@ -766,14 +832,49 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
             </div>
           )}
 
-          {/* Copy path button */}
+          {/* Copy path button on desktop */}
           <button
-            className="file-nav-btn"
+            className="file-nav-btn file-copy-path-btn-desktop"
             onClick={handleCopyCurrentPath}
             title="Copy current path"
           >
             <Copy size={14} />
           </button>
+        </div>
+
+        {/* Quick Locations Horizontal Chip Bar on Mobile */}
+        <div className="file-quick-places-bar">
+          {bookmarks.slice(0, 6).map((bm) => {
+            const isActive = currentPath === bm.path;
+            return (
+              <button
+                key={bm.path}
+                className={`file-quick-place-chip ${isActive ? 'active' : ''}`}
+                onClick={() => navigateTo(bm.path)}
+                title={bm.path}
+              >
+                {getBookmarkIcon(bm.icon)}
+                <span>{bm.name}</span>
+              </button>
+            );
+          })}
+          {disks.map((d, i) => {
+            const mount = d.mount_point || d.mount || '/';
+            const isActive = Boolean(
+              currentPath && mount && (currentPath === mount || currentPath.startsWith(mount + '/'))
+            );
+            return (
+              <button
+                key={mount || i}
+                className={`file-quick-place-chip ${isActive ? 'active' : ''}`}
+                onClick={() => navigateTo(mount)}
+                title={mount}
+              >
+                <Disc size={12} color="var(--purple)" />
+                <span>{mount}</span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Toolbar */}
@@ -804,68 +905,74 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
               )}
             </div>
 
-            <button
-              className={`btn btn-xs ${showHidden ? 'btn-primary' : 'btn-secondary'}`}
-              onClick={() => setShowHidden(!showHidden)}
-              title="Toggle hidden dotfiles"
-            >
-              {showHidden ? <Eye size={14} /> : <EyeOff size={14} />}
-              <span>Hidden</span>
-            </button>
+            <div className="file-toolbar-controls">
+              <button
+                className={`btn btn-xs ${showHidden ? 'btn-primary' : 'btn-secondary'} file-hidden-btn`}
+                onClick={() => setShowHidden(!showHidden)}
+                title="Toggle hidden dotfiles"
+              >
+                {showHidden ? <Eye size={14} /> : <EyeOff size={14} />}
+                <span>Hidden</span>
+              </button>
 
-            <div className="file-view-toggle">
-              <button
-                className={`file-view-toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
-                onClick={() => setViewMode('list')}
-                title="List View"
-              >
-                <List size={15} />
-              </button>
-              <button
-                className={`file-view-toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
-                onClick={() => setViewMode('grid')}
-                title="Grid View"
-              >
-                <Grid size={15} />
-              </button>
+              <div className="file-view-toggle">
+                <button
+                  className={`file-view-toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
+                  onClick={() => setViewMode('list')}
+                  title="List View"
+                >
+                  <List size={15} />
+                </button>
+                <button
+                  className={`file-view-toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
+                  onClick={() => setViewMode('grid')}
+                  title="Grid View"
+                >
+                  <Grid size={15} />
+                </button>
+              </div>
             </div>
           </div>
 
           <div className="file-toolbar-right">
             {canWrite && (
-              <>
+              <div className="file-toolbar-actions">
                 <button
                   className="btn btn-xs btn-secondary"
                   onClick={() => setCreateFolderOpen(true)}
+                  title="New Folder"
                 >
                   <FolderPlus size={14} color="var(--purple)" />
-                  <span>New Folder</span>
+                  <span className="file-btn-text">New Folder</span>
                 </button>
 
                 <button
                   className="btn btn-xs btn-secondary"
                   onClick={() => setCreateFileOpen(true)}
+                  title="New File"
                 >
                   <FilePlus size={14} color="var(--accent)" />
-                  <span>New File</span>
+                  <span className="file-btn-text">New File</span>
                 </button>
 
                 <button
-                  className="btn btn-xs btn-primary"
+                  className="btn btn-xs btn-primary file-upload-btn"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
+                  title="Upload Files"
                 >
                   <Upload size={14} className={uploading ? 'animate-bounce' : ''} />
                   <span>{uploading ? 'Uploading…' : 'Upload'}</span>
                 </button>
-              </>
+              </div>
             )}
 
             {selectedPaths.size > 0 && (
               <button
-                className="btn btn-xs btn-ghost"
+                className="btn btn-xs btn-ghost file-delete-selected-btn"
                 onClick={() => setDeleteTargets(Array.from(selectedPaths))}
                 style={{ color: '#f87171' }}
+                title="Delete selected items"
               >
                 <Trash2 size={14} />
                 <span>Delete ({selectedPaths.size})</span>
@@ -896,7 +1003,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
             <table className="file-table">
               <thead>
                 <tr>
-                  <th style={{ width: '36px', textAlign: 'center' }}>
+                  <th className="file-col-select" style={{ width: '36px', textAlign: 'center' }}>
                     <button
                       className="btn btn-xs btn-ghost"
                       onClick={toggleSelectAll}
@@ -911,6 +1018,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
                     </button>
                   </th>
                   <th
+                    className="file-col-name"
                     style={{ cursor: 'pointer' }}
                     onClick={() => {
                       if (sortBy === 'name') setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
@@ -923,6 +1031,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
                     Name {sortBy === 'name' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
                   </th>
                   <th
+                    className="file-col-size"
                     style={{ cursor: 'pointer', width: '100px' }}
                     onClick={() => {
                       if (sortBy === 'size') setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
@@ -934,9 +1043,10 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
                   >
                     Size {sortBy === 'size' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
                   </th>
-                  <th style={{ width: '120px' }}>Permissions</th>
-                  <th style={{ width: '120px' }}>Owner</th>
+                  <th className="file-col-perms" style={{ width: '120px' }}>Permissions</th>
+                  <th className="file-col-owner" style={{ width: '120px' }}>Owner</th>
                   <th
+                    className="file-col-modified"
                     style={{ cursor: 'pointer', width: '150px' }}
                     onClick={() => {
                       if (sortBy === 'modified') setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
@@ -948,7 +1058,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
                   >
                     Modified {sortBy === 'modified' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
                   </th>
-                  <th style={{ width: '120px', textAlign: 'right' }}>Actions</th>
+                  <th className="file-col-actions" style={{ width: '110px', textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -963,7 +1073,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
                         else setPreviewFilePath(item.path);
                       }}
                     >
-                      <td style={{ textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+                      <td className="file-col-select" style={{ textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
                         <button
                           className="btn btn-xs btn-ghost"
                           onClick={(e) => toggleSelect(item.path, e)}
@@ -977,44 +1087,56 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
                         </button>
                       </td>
 
-                      <td>
+                      <td className="file-col-name">
                         <div className="file-name-cell" title={item.name}>
                           <div className={`file-icon-box cat-${item.category}`}>
                             {getFileCategoryIcon(item.category, item.is_dir)}
                           </div>
-                          <span style={{ fontWeight: item.is_dir ? 600 : 400 }}>{item.name}</span>
-                          {item.is_symlink && (
-                            <span
-                              className="badge badge-lavender"
-                              style={{ fontSize: '0.68rem', padding: '1px 4px' }}
-                            >
-                              symlink
-                            </span>
-                          )}
+                          <div className="file-name-info">
+                            <div className="file-name-primary">
+                              <span className="file-name-text" style={{ fontWeight: item.is_dir ? 600 : 400 }}>
+                                {item.name}
+                              </span>
+                              {item.is_symlink && (
+                                <span
+                                  className="badge badge-lavender file-symlink-badge"
+                                  style={{ fontSize: '0.68rem', padding: '1px 4px' }}
+                                >
+                                  symlink
+                                </span>
+                              )}
+                            </div>
+                            {/* Mobile-only secondary info line */}
+                            <div className="file-mobile-meta">
+                              <span>{item.size_human}</span>
+                              <span className="file-mobile-meta-dot">•</span>
+                              <span>{item.modified_human}</span>
+                            </div>
+                          </div>
                         </div>
                       </td>
 
-                      <td className="font-mono" style={{ color: 'var(--text-secondary)' }}>
+                      <td className="file-col-size font-mono" style={{ color: 'var(--text-secondary)' }}>
                         {item.size_human}
                       </td>
 
-                      <td className="font-mono" style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                      <td className="file-col-perms font-mono" style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                         {item.permissions}
                       </td>
 
-                      <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                      <td className="file-col-owner" style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                         {item.owner}:{item.group}
                       </td>
 
-                      <td style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                      <td className="file-col-modified" style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                         {item.modified_human}
                       </td>
 
-                      <td style={{ textAlign: 'right' }} onClick={(e) => e.stopPropagation()}>
+                      <td className="file-col-actions" style={{ textAlign: 'right' }} onClick={(e) => e.stopPropagation()}>
                         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                           {item.is_dir ? (
                             <button
-                              className="btn btn-xs btn-ghost"
+                              className="btn btn-xs btn-ghost file-row-action-btn"
                               title="Enter folder"
                               onClick={() => navigateTo(item.path)}
                               style={{ padding: '4px', color: 'var(--purple)' }}
@@ -1025,7 +1147,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
                             <a
                               href={`/api/storage/file/raw?path=${encodeURIComponent(item.path)}&download=true`}
                               download
-                              className="btn btn-xs btn-ghost"
+                              className="btn btn-xs btn-ghost file-row-action-btn"
                               title="Download"
                               style={{ padding: '4px' }}
                             >
@@ -1034,7 +1156,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
                           )}
 
                           <button
-                            className="btn btn-xs btn-ghost"
+                            className="btn btn-xs btn-ghost file-row-action-btn"
                             title="Rename"
                             onClick={() => setRenameItem(item)}
                             style={{ padding: '4px' }}
@@ -1043,7 +1165,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
                           </button>
 
                           <button
-                            className="btn btn-xs btn-ghost"
+                            className="btn btn-xs btn-ghost file-row-action-btn"
                             title="Delete"
                             onClick={() => setDeleteTargets([item.path])}
                             style={{ padding: '4px', color: '#f87171' }}
@@ -1102,7 +1224,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
 
         {/* ── Status Bar ─────────────────────────────────────────── */}
         <div className="file-status-bar">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div className="file-status-bar-group">
             <span>
               {fileData?.total_items || 0} items ({fileData?.total_dirs || 0} folders,{' '}
               {fileData?.total_files || 0} files)
@@ -1114,7 +1236,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
             )}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div className="file-status-bar-group">
             {fileData?.disk && (
               <span>
                 Free space: <strong style={{ color: 'var(--text-primary)' }}>{fileData.disk.free_human}</strong> of{' '}

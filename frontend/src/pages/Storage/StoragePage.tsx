@@ -74,44 +74,25 @@ export const StoragePage: React.FC = () => {
   return (
     <div className="file-browser-container">
       {/* ── Toolbar & View Switcher Tabs ─────────────────────────── */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '12px',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div
-            style={{
-              width: '38px',
-              height: '38px',
-              borderRadius: '10px',
-              background: 'rgba(124, 58, 237, 0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--purple)',
-            }}
-          >
+      <div className="storage-page-header">
+        <div className="storage-page-header-title">
+          <div className="storage-page-header-icon">
             <HardDrive size={22} />
           </div>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>
+            <div className="storage-page-title-row">
+              <h2 className="storage-page-title">
                 Storage & Filesystems
               </h2>
               <span className="badge badge-lavender">{disks.length} Mounts</span>
             </div>
-            <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+            <p className="storage-page-subtitle">
               Explore files, inspect storage devices, and manage Linux filesystem partitions
             </p>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div className="storage-page-header-actions">
           {/* Segmented View Switcher Tabs */}
           <div className="storage-view-tabs">
             <button
@@ -131,10 +112,9 @@ export const StoragePage: React.FC = () => {
           </div>
 
           <button
-            className="btn btn-secondary"
+            className="btn btn-secondary storage-refresh-btn"
             onClick={() => loadStorage(true)}
             disabled={loading || refreshing}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             title="Refresh storage information"
           >
             <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
@@ -154,15 +134,9 @@ export const StoragePage: React.FC = () => {
 
       {/* ── Tab 2: Disks & Partitions ───────────────────────────── */}
       {activeTab === 'disks' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div className="storage-disks-container">
           {/* Partition Cards Grid */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-              gap: '16px',
-            }}
-          >
+          <div className="storage-disks-grid">
             {loading ? (
               <div
                 className="card"
@@ -193,7 +167,7 @@ export const StoragePage: React.FC = () => {
                 return (
                   <div
                     key={mount || idx}
-                    className="card"
+                    className="card storage-disk-card"
                     style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
                   >
                     <div
@@ -303,7 +277,7 @@ export const StoragePage: React.FC = () => {
               <h3 style={{ margin: 0, fontSize: '1rem' }}>Mounted Partition Table</h3>
             </div>
             <div className="card-body" style={{ padding: 0 }}>
-              <div style={{ overflowX: 'auto' }}>
+              <div className="storage-table-wrapper" style={{ overflowX: 'auto' }}>
                 <table className="table">
                   <thead>
                     <tr>

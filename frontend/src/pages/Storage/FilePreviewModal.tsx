@@ -175,7 +175,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
       <div className="preview-modal-dialog" role="dialog" aria-modal="true">
         {/* Header */}
         <div className="preview-modal-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+          <div className="preview-modal-title-group" style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
             {renderIcon()}
             <div style={{ minWidth: 0 }}>
               <h3
@@ -200,7 +200,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
           </div>
 
           {/* Action buttons */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="preview-modal-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             {data?.is_text && (
               <>
                 <button
