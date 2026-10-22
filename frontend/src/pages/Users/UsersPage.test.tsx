@@ -232,6 +232,51 @@ describe('UsersPage', () => {
     expect(screen.queryByText('audio')).not.toBeInTheDocument();
   });
 
+  it('renders Groups & Hardware tab with responsive toolbar, cards, search, and action controls', async () => {
+    (api.get as ReturnType<typeof vi.fn>).mockResolvedValue(mockUsersData);
+
+    render(
+      <ToastProvider>
+        <MemoryRouter>
+          <UsersPage />
+        </MemoryRouter>
+      </ToastProvider>
+    );
+
+    await screen.findAllByText('rahat');
+
+    const groupsTab = screen.getByRole('button', { name: /Groups & Hardware/i });
+    act(() => {
+      fireEvent.click(groupsTab);
+    });
+
+    // Check responsive containers and cards
+    expect(document.querySelector('.groups-tab-container')).toBeInTheDocument();
+    expect(document.querySelector('.groups-toolbar')).toBeInTheDocument();
+    expect(document.querySelector('.groups-search-wrap')).toBeInTheDocument();
+    expect(document.querySelector('.groups-card')).toBeInTheDocument();
+    expect(document.querySelector('.groups-table')).toBeInTheDocument();
+    expect(document.querySelectorAll('.group-item-row').length).toBeGreaterThan(0);
+    expect(document.querySelector('.group-gid-badge')).toBeInTheDocument();
+
+    // Test search filter
+    const searchInput = screen.getByPlaceholderText(/Search groups/i);
+    act(() => {
+      fireEvent.change(searchInput, { target: { value: 'audio' } });
+    });
+
+    expect(screen.getByText('audio')).toBeInTheDocument();
+    expect(screen.queryByText('wheel')).not.toBeInTheDocument();
+
+    // Test Edit action opens edit modal for primary user
+    const editBtn = screen.getAllByRole('button', { name: /^Edit$/i })[0];
+    act(() => {
+      fireEvent.click(editBtn);
+    });
+
+    expect(await screen.findByText(/Edit Groups: rahat/i)).toBeInTheDocument();
+  });
+
   it('switches to Security & SSH Keys tab and displays posture cards', async () => {
     (api.get as ReturnType<typeof vi.fn>).mockResolvedValue(mockUsersData);
 

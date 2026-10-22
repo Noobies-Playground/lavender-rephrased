@@ -1012,76 +1012,80 @@ export const UsersPage: React.FC = () => {
           TAB 3: GROUPS & HARDWARE
          ══════════════════════════════════════════════════════════════ */}
       {activeTab === 'groups' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {/* Filter Pills Bar & Search */}
-          <div className="filter-pills-bar">
-            <button
-              className={`filter-pill ${groupFilter === 'all' ? 'active' : ''}`}
-              onClick={() => setGroupFilter('all')}
-            >
-              All Groups ({groupCounts.all})
-            </button>
-            <button
-              className={`filter-pill ${groupFilter === 'Privileged' ? 'active' : ''}`}
-              onClick={() => setGroupFilter('Privileged')}
-            >
-              Privileged ({groupCounts.priv})
-            </button>
-            <button
-              className={`filter-pill ${groupFilter === 'Hardware' ? 'active' : ''}`}
-              onClick={() => setGroupFilter('Hardware')}
-            >
-              Phone & Hardware ({groupCounts.hw})
-            </button>
-            <button
-              className={`filter-pill ${groupFilter === 'Services' ? 'active' : ''}`}
-              onClick={() => setGroupFilter('Services')}
-            >
-              Services ({groupCounts.serv})
-            </button>
-            <button
-              className={`filter-pill ${groupFilter === 'System' ? 'active' : ''}`}
-              onClick={() => setGroupFilter('System')}
-            >
-              System ({groupCounts.sys})
-            </button>
+        <div className="groups-tab-container">
+          {/* Filter Pills Bar & Search Toolbar */}
+          <div className="groups-toolbar">
+            <div className="filter-pills-bar">
+              <button
+                className={`filter-pill ${groupFilter === 'all' ? 'active' : ''}`}
+                onClick={() => setGroupFilter('all')}
+              >
+                All Groups ({groupCounts.all})
+              </button>
+              <button
+                className={`filter-pill ${groupFilter === 'Privileged' ? 'active' : ''}`}
+                onClick={() => setGroupFilter('Privileged')}
+              >
+                Privileged ({groupCounts.priv})
+              </button>
+              <button
+                className={`filter-pill ${groupFilter === 'Hardware' ? 'active' : ''}`}
+                onClick={() => setGroupFilter('Hardware')}
+              >
+                Phone & Hardware ({groupCounts.hw})
+              </button>
+              <button
+                className={`filter-pill ${groupFilter === 'Services' ? 'active' : ''}`}
+                onClick={() => setGroupFilter('Services')}
+              >
+                Services ({groupCounts.serv})
+              </button>
+              <button
+                className={`filter-pill ${groupFilter === 'System' ? 'active' : ''}`}
+                onClick={() => setGroupFilter('System')}
+              >
+                System ({groupCounts.sys})
+              </button>
+            </div>
 
-            <div style={{ marginLeft: 'auto', position: 'relative', minWidth: '260px' }}>
+            <div className="groups-search-wrap">
               <Search
                 size={14}
-                style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}
+                className="groups-search-icon"
               />
               <input
                 type="search"
-                className="input"
+                className="input groups-search-input"
                 placeholder="Search groups (e.g. wheel, audio, docker)..."
                 value={groupSearch}
                 onChange={(e) => setGroupSearch(e.target.value)}
-                style={{ width: '100%', paddingLeft: '30px' }}
               />
             </div>
           </div>
 
           {/* Groups Table Card */}
-          <div className="card">
-            <div className="card-body" style={{ padding: 0 }}>
-              <div style={{ overflowX: 'auto' }}>
-                <table className="table">
+          <div className="card groups-card">
+            <div className="card-body groups-card-body">
+              <div className="groups-table-wrap">
+                <table className="table groups-table">
                   <thead>
                     <tr>
-                      <th>Group Name</th>
-                      <th>GID</th>
-                      <th>Category</th>
-                      <th>Subsystem / Permission</th>
-                      <th>Members</th>
-                      <th style={{ textAlign: 'right' }}>Actions</th>
+                      <th className="col-group-name">Group Name</th>
+                      <th className="col-group-gid">GID</th>
+                      <th className="col-group-cat">Category</th>
+                      <th className="col-group-desc">Subsystem / Permission</th>
+                      <th className="col-group-members">Members</th>
+                      <th className="col-group-actions">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredGroups.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
-                          No groups match current filter
+                      <tr className="groups-empty-row">
+                        <td colSpan={6} className="groups-empty-cell">
+                          <div className="groups-empty-content">
+                            <Layers size={18} className="groups-empty-icon" />
+                            <span>No groups match current filter</span>
+                          </div>
                         </td>
                       </tr>
                     ) : (
@@ -1092,27 +1096,28 @@ export const UsersPage: React.FC = () => {
                         } else if (g.category === 'Hardware') {
                           catBadge = <span className="badge badge-success">Hardware</span>;
                         } else if (g.category === 'Services') {
-                          catBadge = (
-                            <span className="badge" style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8' }}>
-                              Services
-                            </span>
-                          );
+                          catBadge = <span className="badge badge-services">Services</span>;
                         }
 
                         return (
-                          <tr key={g.name}>
-                            <td className="font-mono" style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-                              {g.name}
+                          <tr key={g.name} className="group-item-row">
+                            <td className="group-cell-name font-mono">
+                              <span className="group-name-text">{g.name}</span>
                             </td>
-                            <td className="font-mono" style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                              {g.gid}
+                            <td className="group-cell-gid font-mono">
+                              <span className="group-gid-badge">
+                                <span className="group-gid-prefix">GID </span>
+                                {g.gid}
+                              </span>
                             </td>
-                            <td>{catBadge}</td>
-                            <td style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', maxWidth: '340px' }}>
-                              {g.description}
+                            <td className="group-cell-cat">{catBadge}</td>
+                            <td className="group-cell-desc">
+                              <span className="group-meta-label">Subsystem / Permission</span>
+                              <span className="group-desc-text">{g.description}</span>
                             </td>
-                            <td>
-                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', maxWidth: '220px' }}>
+                            <td className="group-cell-members">
+                              <span className="group-meta-label">Members</span>
+                              <div className="group-members-wrap">
                                 {g.members && g.members.length > 0 ? (
                                   g.members.map((m) => {
                                     const isHuman = humanUsers.some((u) => getUsername(u) === m);
@@ -1120,21 +1125,20 @@ export const UsersPage: React.FC = () => {
                                       <span
                                         key={m}
                                         className={`group-tag ${isHuman ? 'tag-wheel' : ''}`}
-                                        style={{ fontSize: '11px' }}
                                       >
                                         {m}
                                       </span>
                                     );
                                   })
                                 ) : (
-                                  <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>—</span>
+                                  <span className="group-no-members">—</span>
                                 )}
                               </div>
                             </td>
-                            <td style={{ textAlign: 'right' }}>
+                            <td className="group-cell-actions">
                               {primaryHumanUser && (
                                 <button
-                                  className="btn btn-xs btn-ghost"
+                                  className="btn btn-xs btn-ghost group-action-btn"
                                   onClick={() => handleOpenEditGroups(primaryHumanUser)}
                                   title={`Edit group assignments for ${getUsername(primaryHumanUser)}`}
                                 >
