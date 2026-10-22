@@ -255,4 +255,35 @@ describe('UsersPage', () => {
     expect(screen.getByText(/SSH Authorized Keys Hub/i)).toBeInTheDocument();
     expect(screen.getByText(/Syntax OK/i)).toBeInTheDocument();
   });
+
+  it('renders active sessions and login history in Active Sessions tab with responsive classes', async () => {
+    (api.get as ReturnType<typeof vi.fn>).mockResolvedValue(mockUsersData);
+
+    render(
+      <ToastProvider>
+        <MemoryRouter>
+          <UsersPage />
+        </MemoryRouter>
+      </ToastProvider>
+    );
+
+    await screen.findAllByText('rahat');
+
+    // Switch to active sessions tab
+    const sessionsTab = screen.getByRole('button', { name: /Active Sessions/i });
+    act(() => {
+      fireEvent.click(sessionsTab);
+    });
+
+    expect(screen.getByText('Active Terminal & Remote Logins')).toBeInTheDocument();
+    expect(screen.getByText('Recent Login History')).toBeInTheDocument();
+    expect(screen.getByText('1 Online')).toBeInTheDocument();
+    expect(screen.getAllByText('pts/0').length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText('Mon 14:20')).toBeInTheDocument();
+
+    const activeTable = document.querySelector('.active-sessions-table');
+    expect(activeTable).toBeInTheDocument();
+    expect(document.querySelector('.session-item-row')).toBeInTheDocument();
+    expect(document.querySelector('.history-item-row')).toBeInTheDocument();
+  });
 });

@@ -3990,6 +3990,176 @@
     }
 }
 
+/* Active Sessions Tab Styles (Base Desktop) */
+.users-sessions-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.sessions-table-wrap {
+    overflow-x: auto;
+    width: 100%;
+}
+
+/* Desktop Table Column Widths (Active Sessions & Login History) */
+@media (min-width: 769px) {
+    .active-sessions-table th.col-status,
+    .active-sessions-table td.session-cell-status {
+        width: 50px;
+        text-align: center;
+    }
+
+    .active-sessions-table th.col-user,
+    .active-sessions-table td.session-cell-user {
+        width: 15%;
+        min-width: 110px;
+    }
+
+    .active-sessions-table th.col-tty,
+    .active-sessions-table td.session-cell-tty {
+        width: 15%;
+        min-width: 110px;
+    }
+
+    .active-sessions-table th.col-host,
+    .active-sessions-table td.session-cell-host {
+        width: 18%;
+        min-width: 130px;
+    }
+
+    .active-sessions-table th.col-login,
+    .active-sessions-table td.session-cell-login {
+        width: 22%;
+        min-width: 160px;
+    }
+
+    .active-sessions-table th.col-idle,
+    .active-sessions-table td.session-cell-idle {
+        width: 14%;
+        min-width: 100px;
+    }
+
+    .active-sessions-table th.col-actions,
+    .active-sessions-table td.session-cell-actions {
+        width: 16%;
+        min-width: 120px;
+        text-align: right;
+    }
+
+    /* History Sessions Table Desktop Layout */
+    .history-sessions-table th.hist-col-user,
+    .history-sessions-table td.hist-cell-user {
+        width: 18%;
+        min-width: 120px;
+    }
+
+    .history-sessions-table th.hist-col-tty,
+    .history-sessions-table td.hist-cell-tty {
+        width: 16%;
+        min-width: 100px;
+    }
+
+    .history-sessions-table th.hist-col-host,
+    .history-sessions-table td.hist-cell-host {
+        width: 20%;
+        min-width: 120px;
+    }
+
+    .history-sessions-table th.hist-col-time,
+    .history-sessions-table td.hist-cell-time {
+        width: 46%;
+        min-width: 220px;
+    }
+}
+
+.sessions-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.sessions-header-titles {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.sessions-card-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.sessions-card-subtitle {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.sessions-meta-label {
+    display: none;
+}
+
+.session-user-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.session-username {
+    color: var(--text-primary);
+}
+
+.session-tty-badge {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.session-disconnect-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.hist-username {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.hist-tty-badge {
+    color: var(--accent);
+    font-size: 0.82rem;
+}
+
+.hist-host-badge {
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+}
+
+.hist-time-val {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.sessions-empty-cell {
+    text-align: center;
+    padding: 32px 16px;
+    color: var(--text-muted);
+}
+
+.sessions-empty-content {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+}
+
+.sessions-empty-icon {
+    opacity: 0.6;
+}
+
 /* Security Posture Cards */
 .security-posture-grid {
     display: grid;
@@ -4362,6 +4532,301 @@
     .edit-groups-grid {
         grid-template-columns: minmax(0, 1fr);
     }
+
+    /* Active Sessions Tab Responsive Layout (Mobile / Tablet) */
+    .users-sessions-container {
+        gap: 14px;
+    }
+
+    /* Zero out parent card padding so content goes edge-to-edge with clean internal padding */
+    .users-sessions-card {
+        padding: 0 !important;
+        border-radius: var(--radius-md) !important;
+        overflow: hidden !important;
+    }
+
+    .sessions-card-header {
+        padding: 12px 14px 10px !important;
+        margin: 0 !important;
+        border-bottom: 1px solid var(--border-subtle) !important;
+        gap: 6px 10px;
+    }
+
+    .sessions-card-title {
+        font-size: 0.95rem;
+    }
+
+    .sessions-card-subtitle {
+        font-size: 11px;
+        line-height: 1.3;
+    }
+
+    .sessions-online-badge {
+        font-size: 11px;
+        padding: 2px 7px;
+    }
+
+    .sessions-table-wrap {
+        overflow-x: visible !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .sessions-table thead {
+        display: none !important;
+    }
+
+    .sessions-table,
+    .sessions-table tbody {
+        display: block !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .sessions-card-body {
+        padding: 6px 8px !important;
+    }
+
+    /* Active Sessions Card View */
+    .active-sessions-table .session-item-row {
+        display: grid !important;
+        grid-template-columns: auto auto auto 1fr !important;
+        grid-template-areas:
+            "status user tty   action"
+            "host   host host  idle"
+            "login  login login login" !important;
+        align-items: center !important;
+        gap: 8px 10px !important;
+        padding: 10px 12px !important;
+        margin: 0 0 6px 0 !important;
+        background: rgba(255, 255, 255, 0.02) !important;
+        border: 1px solid var(--border-subtle) !important;
+        border-radius: var(--radius-md) !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12) !important;
+        transition: var(--transition-fast) !important;
+        box-sizing: border-box !important;
+        width: 100% !important;
+    }
+
+    .active-sessions-table .session-item-row:last-child {
+        margin-bottom: 0 !important;
+    }
+
+    .active-sessions-table .session-item-row:hover {
+        background: rgba(139, 92, 246, 0.04) !important;
+        border-color: rgba(139, 92, 246, 0.25) !important;
+    }
+
+    .active-sessions-table .session-item-row td {
+        padding: 0 !important;
+        border: none !important;
+        background: transparent !important;
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        box-sizing: border-box !important;
+    }
+
+    .active-sessions-table .session-item-row td.session-cell-status {
+        grid-area: status !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 14px !important;
+        min-width: 14px !important;
+    }
+
+    .session-cell-user {
+        grid-area: user !important;
+        display: flex !important;
+        align-items: center !important;
+        font-size: 13.5px !important;
+        font-weight: 600 !important;
+        color: var(--text-primary) !important;
+        white-space: nowrap !important;
+    }
+
+    .session-cell-tty {
+        grid-area: tty !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-self: start !important;
+        white-space: nowrap !important;
+    }
+
+    .session-cell-tty .session-tty-badge {
+        padding: 2px 7px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        background: rgba(139, 92, 246, 0.12);
+        color: var(--accent);
+        border: 1px solid rgba(139, 92, 246, 0.25);
+    }
+
+    .session-cell-actions {
+        grid-area: action !important;
+        justify-self: end !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    .session-cell-actions .session-disconnect-btn {
+        padding: 5px 10px !important;
+        font-size: 11px !important;
+        border-radius: 6px !important;
+        white-space: nowrap !important;
+    }
+
+    .session-cell-host {
+        grid-area: host !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+        font-size: 11.5px !important;
+        color: var(--text-secondary) !important;
+        white-space: nowrap !important;
+    }
+
+    .session-cell-idle {
+        grid-area: idle !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-self: end !important;
+        gap: 5px !important;
+        font-size: 11.5px !important;
+        color: var(--text-muted) !important;
+        white-space: nowrap !important;
+    }
+
+    .active-sessions-table .session-item-row td.session-cell-login {
+        grid-area: login !important;
+        width: 100% !important;
+        padding-top: 6px !important;
+        border-top: 1px dashed rgba(255, 255, 255, 0.08) !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        font-size: 11px !important;
+        color: var(--text-secondary) !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    .sessions-meta-label {
+        display: inline-block !important;
+        font-size: 10px !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.04em !important;
+        color: var(--text-muted) !important;
+        font-weight: 600 !important;
+    }
+
+    .sessions-meta-val {
+        color: var(--text-secondary) !important;
+    }
+
+    /* Recent Login History Card View */
+    .history-sessions-table .history-item-row {
+        display: grid !important;
+        grid-template-columns: auto auto 1fr !important;
+        grid-template-areas:
+            "user tty host"
+            "time time time" !important;
+        align-items: center !important;
+        gap: 6px 10px !important;
+        padding: 9px 11px !important;
+        margin: 0 0 5px 0 !important;
+        background: rgba(255, 255, 255, 0.02) !important;
+        border: 1px solid var(--border-subtle) !important;
+        border-radius: var(--radius-md) !important;
+        box-sizing: border-box !important;
+        width: 100% !important;
+    }
+
+    .history-sessions-table .history-item-row:last-child {
+        margin-bottom: 0 !important;
+    }
+
+    .history-sessions-table .history-item-row td {
+        padding: 0 !important;
+        border: none !important;
+        background: transparent !important;
+        width: auto !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    .hist-cell-user {
+        grid-area: user !important;
+        display: flex !important;
+        align-items: center !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        color: var(--text-primary) !important;
+    }
+
+    .hist-cell-tty {
+        grid-area: tty !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-self: start !important;
+    }
+
+    .hist-tty-badge {
+        padding: 1px 6px;
+        border-radius: 4px;
+        font-size: 10.5px;
+        font-weight: 600;
+        background: rgba(139, 92, 246, 0.1);
+        color: var(--accent);
+        border: 1px solid rgba(139, 92, 246, 0.2);
+    }
+
+    .hist-cell-host {
+        grid-area: host !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-self: end !important;
+    }
+
+    .hist-host-badge {
+        padding: 1px 6px;
+        border-radius: 4px;
+        font-size: 10.5px;
+        color: var(--text-secondary);
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border-subtle);
+    }
+
+    .history-sessions-table .history-item-row td.hist-cell-time {
+        grid-area: time !important;
+        padding-top: 5px !important;
+        border-top: 1px dashed rgba(255, 255, 255, 0.06) !important;
+        font-size: 11px !important;
+        color: var(--text-muted) !important;
+        line-height: 1.35 !important;
+        word-break: break-word !important;
+    }
+
+    /* Empty States on Mobile */
+    .sessions-empty-row {
+        display: block !important;
+        width: 100% !important;
+    }
+
+    .sessions-empty-cell {
+        display: block !important;
+        padding: 24px 12px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .sessions-empty-content {
+        flex-direction: column !important;
+        gap: 6px !important;
+    }
 }
 
 @media (max-width: 480px) {
@@ -4417,6 +4882,31 @@
     .system-accounts-title-mobile {
         display: inline;
     }
+
+    .sessions-card-header {
+        padding: 10px 12px 8px !important;
+    }
+
+    .sessions-card-body {
+        padding: 4px 6px !important;
+    }
+
+    .active-sessions-table .session-item-row {
+        padding: 8px 10px !important;
+        gap: 6px 8px !important;
+        margin: 0 0 5px 0 !important;
+    }
+
+    .session-cell-actions .session-disconnect-btn {
+        padding: 4px 8px !important;
+        font-size: 10.5px !important;
+    }
+
+    .history-sessions-table .history-item-row {
+        padding: 7px 9px !important;
+        gap: 4px 6px !important;
+        margin: 0 0 4px 0 !important;
+    }
 }
 
 @media (max-width: 360px) {
@@ -4427,6 +4917,16 @@
 
     .user-card-actions {
         grid-template-columns: minmax(0, 1fr);
+    }
+
+    .active-sessions-table .session-item-row {
+        gap: 6px 8px !important;
+        padding: 8px 10px !important;
+    }
+
+    .session-cell-actions .session-disconnect-btn {
+        padding: 3px 6px !important;
+        font-size: 10px !important;
     }
 }
 

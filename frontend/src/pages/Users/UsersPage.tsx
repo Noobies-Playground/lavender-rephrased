@@ -31,6 +31,7 @@ import {
   Cpu,
   Layers,
   ExternalLink,
+  Clock,
 } from 'lucide-react';
 
 type TabType = 'accounts' | 'sessions' | 'groups' | 'security';
@@ -867,69 +868,74 @@ export const UsersPage: React.FC = () => {
           TAB 2: ACTIVE SESSIONS & RECENT LOGINS
          ══════════════════════════════════════════════════════════════ */}
       {activeTab === 'sessions' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div className="users-sessions-container">
           {/* Active Terminal & Remote Logins */}
-          <div className="card">
-            <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <h3 style={{ margin: 0, fontSize: '1rem' }}>Active Terminal & Remote Logins</h3>
-                <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+          <div className="card users-sessions-card">
+            <div className="card-header sessions-card-header">
+              <div className="sessions-header-titles">
+                <h3 className="sessions-card-title">Active Terminal & Remote Logins</h3>
+                <span className="sessions-card-subtitle">
                   Real-time logged-in TTYs & SSH sessions
                 </span>
               </div>
-              <span className="badge badge-lavender">{activeSessions.length} Online</span>
+              <span className="badge badge-lavender sessions-online-badge">{activeSessions.length} Online</span>
             </div>
 
-            <div className="card-body" style={{ padding: 0 }}>
-              <div style={{ overflowX: 'auto' }}>
-                <table className="table">
+            <div className="card-body sessions-card-body" style={{ padding: 0 }}>
+              <div className="sessions-table-wrap">
+                <table className="table sessions-table active-sessions-table">
                   <thead>
                     <tr>
-                      <th style={{ width: '40px' }}>Status</th>
-                      <th>User</th>
-                      <th>Terminal (TTY)</th>
-                      <th>Remote Host / IP</th>
-                      <th>Login Time</th>
-                      <th>Idle Duration</th>
-                      <th style={{ textAlign: 'right' }}>Actions</th>
+                      <th className="col-status" style={{ width: '40px' }}>Status</th>
+                      <th className="col-user">User</th>
+                      <th className="col-tty">Terminal (TTY)</th>
+                      <th className="col-host">Remote Host / IP</th>
+                      <th className="col-login">Login Time</th>
+                      <th className="col-idle">Idle Duration</th>
+                      <th className="col-actions" style={{ textAlign: 'right' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {activeSessions.length === 0 ? (
-                      <tr>
-                        <td colSpan={7} style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
-                          No active terminal or SSH sessions connected
+                      <tr className="sessions-empty-row">
+                        <td colSpan={7} className="sessions-empty-cell">
+                          <div className="sessions-empty-content">
+                            <Terminal size={22} className="sessions-empty-icon" />
+                            <span>No active terminal or SSH sessions connected</span>
+                          </div>
                         </td>
                       </tr>
                     ) : (
                       activeSessions.map((s) => (
-                        <tr key={s.tty}>
-                          <td>
+                        <tr key={s.tty} className="session-item-row">
+                          <td className="session-cell-status">
                             <span className="session-beacon" title="Session Active" />
                           </td>
-                          <td>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <strong style={{ color: 'var(--text-primary)' }}>{s.user}</strong>
+                          <td className="session-cell-user">
+                            <div className="session-user-wrap">
+                              <strong className="session-username">{s.user}</strong>
                             </div>
                           </td>
-                          <td className="font-mono" style={{ color: 'var(--accent)', fontWeight: 600 }}>
-                            {s.tty}
+                          <td className="session-cell-tty font-mono">
+                            <span className="session-tty-badge">{s.tty}</span>
                           </td>
-                          <td className="font-mono" style={{ color: 'var(--text-secondary)' }}>
-                            {s.from || s.host || 'local'}
+                          <td className="session-cell-host font-mono">
+                            <span className="sessions-meta-label">Host: </span>
+                            <span className="sessions-meta-val">{s.from || s.host || 'local'}</span>
                           </td>
-                          <td style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                            {s.login_time || '—'}
+                          <td className="session-cell-login">
+                            <span className="sessions-meta-label">Login: </span>
+                            <span className="sessions-meta-val">{s.login_time || '—'}</span>
                           </td>
-                          <td className="font-mono" style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                            {s.idle || '0s'}
+                          <td className="session-cell-idle font-mono">
+                            <span className="sessions-meta-label">Idle: </span>
+                            <span className="sessions-meta-val">{s.idle || '0s'}</span>
                           </td>
-                          <td style={{ textAlign: 'right' }}>
+                          <td className="session-cell-actions">
                             <button
-                              className="btn btn-xs btn-danger"
+                              className="btn btn-xs btn-danger session-disconnect-btn"
                               onClick={() => setPendingTerminate(s)}
                               title={`Terminate session on ${s.tty}`}
-                              style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                             >
                               <XCircle size={13} />
                               <span>Disconnect</span>
@@ -945,45 +951,52 @@ export const UsersPage: React.FC = () => {
           </div>
 
           {/* Recent Login History (lastlog/wtmp) */}
-          <div className="card">
-            <div className="card-header">
-              <h3 style={{ margin: 0, fontSize: '1rem' }}>Recent Login History</h3>
-              <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                Last 10 system authentication sessions (from lastlog/wtmp)
-              </span>
+          <div className="card users-sessions-card">
+            <div className="card-header sessions-card-header">
+              <div className="sessions-header-titles">
+                <h3 className="sessions-card-title">Recent Login History</h3>
+                <span className="sessions-card-subtitle">
+                  Last 10 system authentication sessions (from lastlog/wtmp)
+                </span>
+              </div>
             </div>
 
-            <div className="card-body" style={{ padding: 0 }}>
-              <div style={{ overflowX: 'auto' }}>
-                <table className="table">
+            <div className="card-body sessions-card-body" style={{ padding: 0 }}>
+              <div className="sessions-table-wrap">
+                <table className="table sessions-table history-sessions-table">
                   <thead>
                     <tr>
-                      <th>User</th>
-                      <th>Terminal</th>
-                      <th>Host</th>
-                      <th>Time / Session Duration</th>
+                      <th className="hist-col-user">User</th>
+                      <th className="hist-col-tty">Terminal</th>
+                      <th className="hist-col-host">Host</th>
+                      <th className="hist-col-time">Time / Session Duration</th>
                     </tr>
                   </thead>
                   <tbody>
                     {loginHistory.length === 0 ? (
-                      <tr>
-                        <td colSpan={4} style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>
-                          No recent logins recorded
+                      <tr className="sessions-empty-row">
+                        <td colSpan={4} className="sessions-empty-cell">
+                          <div className="sessions-empty-content">
+                            <Clock size={20} className="sessions-empty-icon" />
+                            <span>No recent logins recorded</span>
+                          </div>
                         </td>
                       </tr>
                     ) : (
                       loginHistory.map((h, idx) => (
-                        <tr key={idx}>
-                          <td className="font-mono" style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-                            {h.user}
+                        <tr key={idx} className="history-item-row">
+                          <td className="hist-cell-user font-mono">
+                            <span className="hist-username">{h.user}</span>
                           </td>
-                          <td className="font-mono" style={{ fontSize: '0.82rem', color: 'var(--accent)' }}>
-                            {h.tty}
+                          <td className="hist-cell-tty font-mono">
+                            <span className="hist-tty-badge">{h.tty}</span>
                           </td>
-                          <td className="font-mono" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-                            {h.host || 'local'}
+                          <td className="hist-cell-host font-mono">
+                            <span className="hist-host-badge">{h.host || 'local'}</span>
                           </td>
-                          <td style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{h.time}</td>
+                          <td className="hist-cell-time">
+                            <span className="hist-time-val">{h.time}</span>
+                          </td>
                         </tr>
                       ))
                     )}
