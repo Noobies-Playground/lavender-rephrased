@@ -755,12 +755,14 @@
   overflow-y: auto;
   min-height: 400px;
   max-height: calc(100vh - 280px);
+  max-height: calc(100dvh - 280px);
 }
 
 @media (max-width: 820px) {
   .file-content-scroll {
     min-height: 320px;
     max-height: calc(100vh - 240px);
+    max-height: calc(100dvh - 240px);
   }
 }
 

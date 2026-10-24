@@ -27,7 +27,8 @@ export const AppShell: React.FC = () => {
       className="dashboard-shell"
       style={{
         display: 'flex',
-        height: '100vh',
+        height: '100%',
+        maxHeight: '100dvh',
         width: '100%',
         backgroundColor: 'var(--bg-base)',
         overflow: 'hidden',
@@ -43,8 +44,11 @@ export const AppShell: React.FC = () => {
           display: 'flex',
           flexDirection: 'column',
           minWidth: 0,
+          minHeight: 0,
           overflowX: 'hidden',
-          height: '100vh',
+          overflowY: 'hidden',
+          height: '100%',
+          maxHeight: '100dvh',
         }}
       >
         <Topbar
@@ -61,6 +65,7 @@ export const AppShell: React.FC = () => {
             boxSizing: 'border-box',
             minHeight: 0,
             overflowY: 'auto',
+            overscrollBehavior: 'contain',
           }}
         >
           <Outlet />

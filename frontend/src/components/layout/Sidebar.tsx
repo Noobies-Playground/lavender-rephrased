@@ -36,7 +36,11 @@ const NAV_ITEMS: NavItemDef[] = [
 
 export const Sidebar: React.FC = () => {
   const [collapsed, setCollapsed] = useState<boolean>(() => {
-    return localStorage.getItem('lavender_sidebar_collapsed') === 'true';
+    const saved = localStorage.getItem('lavender_sidebar_collapsed');
+    if (saved !== null) {
+      return saved === 'true';
+    }
+    return typeof window !== 'undefined' && window.innerWidth < 768;
   });
 
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
@@ -59,9 +63,10 @@ export const Sidebar: React.FC = () => {
       style={{
         width: collapsed ? 'var(--sidebar-collapsed-width)' : 'var(--sidebar-width)',
         minWidth: collapsed ? 'var(--sidebar-collapsed-width)' : 'var(--sidebar-width)',
-        height: '100vh',
-        position: 'sticky',
-        top: 0,
+        height: '100%',
+        maxHeight: '100dvh',
+        minHeight: 0,
+        boxSizing: 'border-box',
         display: 'flex',
         flexDirection: 'column',
         background: 'rgba(6, 15, 30, 0.95)',
@@ -70,6 +75,7 @@ export const Sidebar: React.FC = () => {
         transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
         overflow: 'hidden',
         zIndex: 60,
+        flexShrink: 0,
       }}
     >
       {/* Sidebar Header */}
@@ -82,6 +88,8 @@ export const Sidebar: React.FC = () => {
           justifyContent: collapsed ? 'center' : 'space-between',
           padding: collapsed ? '0' : '0 16px',
           borderBottom: '1px solid var(--border-subtle)',
+          flexShrink: 0,
+          boxSizing: 'border-box',
         }}
       >
         {!collapsed && (
@@ -148,11 +156,15 @@ export const Sidebar: React.FC = () => {
       <nav
         style={{
           flex: 1,
-          padding: collapsed ? '12px 5px' : '16px 10px',
+          minHeight: 0,
+          padding: collapsed ? '10px 5px' : '14px 10px',
           display: 'flex',
           flexDirection: 'column',
           gap: '4px',
           overflowY: 'auto',
+          overflowX: 'hidden',
+          overscrollBehavior: 'contain',
+          boxSizing: 'border-box',
         }}
       >
         {NAV_ITEMS.map((item) => {
@@ -194,7 +206,9 @@ export const Sidebar: React.FC = () => {
       <div
         className="sidebar-footer"
         style={{
-          padding: collapsed ? '12px 4px' : '12px 16px',
+          padding: collapsed
+            ? '10px 4px calc(10px + env(safe-area-inset-bottom, 0px))'
+            : '10px 16px calc(10px + env(safe-area-inset-bottom, 0px))',
           borderTop: '1px solid var(--border-subtle)',
           display: 'flex',
           flexDirection: 'column',
@@ -202,6 +216,8 @@ export const Sidebar: React.FC = () => {
           gap: '4px',
           fontSize: '0.72rem',
           color: 'var(--text-muted)',
+          flexShrink: 0,
+          boxSizing: 'border-box',
         }}
       >
         <span

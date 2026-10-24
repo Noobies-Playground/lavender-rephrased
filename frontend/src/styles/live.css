@@ -222,7 +222,9 @@
 @media (min-width: 1024px) {
     .dashboard-content-overview {
         height: calc(100vh - var(--topbar-height, 52px));
+        height: calc(100dvh - var(--topbar-height, 52px));
         max-height: calc(100vh - var(--topbar-height, 52px));
+        max-height: calc(100dvh - var(--topbar-height, 52px));
         overflow: hidden !important;
         box-sizing: border-box;
     }
