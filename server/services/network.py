@@ -123,7 +123,7 @@ def get_ip_addresses() -> list[dict]:
                     or name == "docker0"
                     or name.startswith("br-")
                 )
-                is_virtual = name.startswith(("veth", "tun", "tap", "wg", "dummy"))
+                is_virtual = name.startswith(("veth", "tun", "tap", "wg", "tailscale", "dummy"))
                 is_cellular = name.startswith(("wwan", "rmnet", "cdc-wdm"))
 
                 if is_loopback:
@@ -242,7 +242,9 @@ def get_ip_addresses() -> list[dict]:
                 or name == "docker0"
                 or name.startswith("br-")
             )
-            cat = "loopback" if is_loopback else ("wireless" if is_wireless else ("bridge" if is_bridge else "ethernet"))
+            is_cellular = name.startswith(("wwan", "rmnet", "cdc-wdm"))
+            is_virtual = name.startswith(("veth", "tun", "tap", "wg", "tailscale", "dummy"))
+            cat = "loopback" if is_loopback else ("wireless" if is_wireless else ("cellular" if is_cellular else ("bridge" if is_bridge else ("virtual" if is_virtual else "ethernet"))))
 
             mtu = 0
             try:
@@ -317,7 +319,12 @@ def get_ip_addresses() -> list[dict]:
 
     def sort_key(iface):
         score = 100
-        if iface.get("is_default"):
+        name = iface.get("name", "")
+        # Tailscale interfaces should be deprioritized (lower priority = higher score)
+        is_tailscale = name.startswith("tailscale")
+        if is_tailscale:
+            score = 80  # Lower priority than wireless, bridge, virtual
+        elif iface.get("is_default"):
             score = 10
         elif iface.get("category") == "wireless":
             score = 20
